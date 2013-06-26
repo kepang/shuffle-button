@@ -32,7 +32,8 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
 		
 
 		
-		@SuppressWarnings("deprecation")
+		//@SuppressWarnings("deprecation")
+		/*
 		Cursor c = managedQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, rq_columns, null, null, null);
 		int name = c.getColumnIndex(MediaStore.Audio.Media.TITLE);
 
@@ -46,7 +47,7 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
 		tv_songTitle.append("\n" + c.getString(name));
 		c.moveToNext();
 		tv_songTitle.append("\n" + c.getString(name));
-		
+		*/
 		getLoaderManager().initLoader(0, null, this);
 		
 	}
@@ -79,15 +80,19 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 		// TODO Auto-generated method stub
+		
+		
 		cursor.moveToFirst();
-		tv_songTitle.append("\n:\n" + cursor.getString(0));
+		String test = cursor.getString(1);
+		//tv_songTitle.append("\n:\n" + cursor.getString(0));
+		/*
 		cursor.moveToNext();
 		tv_songTitle.append("\n:\n" + cursor.getString(0));
 		Random r = new Random();
 		int rand = r.nextInt(cursor.getCount());
 		cursor.moveToPosition(rand);
 		tv_songTitle.append("\n" + cursor.getString(0));
-
+		*/
 	}
 
 	@Override
