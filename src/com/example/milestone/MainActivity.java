@@ -1,14 +1,18 @@
 package com.example.milestone;
 
+import java.io.IOException;
 import java.util.Random;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.LoaderManager;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -23,6 +27,7 @@ public class MainActivity extends Activity {
 	private final int DURATION_INDEX = 3;
 	private final int ALBUM_INDEX = 4;
 	
+	MediaPlayer mPlayer;
 	Cursor mCursor;
 	TextView tv_songTitle;
 	int songsListSize;
@@ -70,9 +75,15 @@ public class MainActivity extends Activity {
 			tv_songTitle.append("\n" + mCursor.getString(TITLE_INDEX));
 			tv_songTitle.append("\n" + mCursor.getLong(ID_INDEX));
 			start();
-		}	
-
-		
+		}			
+	}
+	
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		mPlayer.release();
+		mPlayer = null;
+		super.onPause();
 	}
 	
 	@Override
@@ -96,7 +107,32 @@ public class MainActivity extends Activity {
 	
 
 	private void start() {
+		long id = mCursor.getLong(ID_INDEX);
+		Uri myUri = ContentUris.withAppendedId(
+		        android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+
+		mPlayer = new MediaPlayer();
+		mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		try {
+			mPlayer.setDataSource(getApplicationContext(), myUri);
+			mPlayer.prepare();
+
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		catch (IllegalStateException e) {
+			e.printStackTrace();
+		}
+		catch (IllegalArgumentException e) {
+			
+		}
+		catch (SecurityException e) {
+			
+		}
 		
+		
+		mPlayer.start();
 		
 		
 		
