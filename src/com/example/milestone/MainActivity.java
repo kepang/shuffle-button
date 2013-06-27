@@ -13,13 +13,15 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnCompletionListener {
 
 	private final int ID_INDEX = 0;
 	private final int ARTIST_INDEX = 1;
@@ -62,9 +64,11 @@ public class MainActivity extends Activity {
 		super.onResume();
 		if (mCursor == null) {
 		    // query failed, handle error.
+			tv_songTitle.setText("query failed, handle error");
 		} 
 		else if (!mCursor.moveToFirst()) {
 		    // no media on the device
+			tv_songTitle.setText("no media in the device");
 		}
 		else {
 		    //int titleColumn = mCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE);
@@ -74,7 +78,13 @@ public class MainActivity extends Activity {
 			tv_songTitle.setText(mCursor.getString(ARTIST_INDEX));
 			tv_songTitle.append("\n" + mCursor.getString(TITLE_INDEX));
 			tv_songTitle.append("\n" + mCursor.getLong(ID_INDEX));
-			start();
+			
+			// ID to send to music player which song to play
+			long id = mCursor.getLong(ID_INDEX);
+
+			mPlayer = new MediaPlayer();
+			mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+			start(id);
 		}			
 	}
 	
@@ -106,14 +116,12 @@ public class MainActivity extends Activity {
 	}
 	
 
-	private void start() {
-		long id = mCursor.getLong(ID_INDEX);
+	private void start(long id) {
 		Uri myUri = ContentUris.withAppendedId(
 		        android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
-
-		mPlayer = new MediaPlayer();
-		mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		
 		try {
+			mPlayer.reset();
 			mPlayer.setDataSource(getApplicationContext(), myUri);
 			mPlayer.prepare();
 
@@ -125,10 +133,10 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 		}
 		catch (IllegalArgumentException e) {
-			
+			e.printStackTrace();
 		}
 		catch (SecurityException e) {
-			
+			e.printStackTrace();			
 		}
 		
 		
@@ -137,5 +145,17 @@ public class MainActivity extends Activity {
 		
 		
 	}
+
+	/************ LISTENERS ******************/
+	// onCompletion
+	
+	@Override
+	public void onCompletion(MediaPlayer mp) {
+		// TODO Auto-generated method stub
+		Toast.makeText(this, "on completion", Toast.LENGTH_SHORT).show();
+	}
+	
+	
+	
 
 }
