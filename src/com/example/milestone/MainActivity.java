@@ -18,6 +18,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +31,11 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	private final int TITLE_INDEX = 2;
 	private final int DURATION_INDEX = 3;
 	private final int ALBUM_INDEX = 4;
+	
+	ImageButton playB;
+	ImageButton forwardB;
+	ImageButton previousB;
+	
 	
 	MediaPlayer mPlayer;
 	Cursor mCursor;
@@ -54,7 +62,8 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 		mCursor = contentResolver.query(uri, rq_columns, null, null, null);
 	    songsListSize = mCursor.getCount();
-
+	    
+	    addPlayerControlListenerOnButton();
 	
 	}
 	
@@ -119,10 +128,6 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		return true;
 	}
 	
-	
-	
-	
-
 	private void start(long id) {
 		Uri myUri = ContentUris.withAppendedId(
 				android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
@@ -174,6 +179,38 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	}
 	
 	
-	
+	/************* button listeners *************/
+	public void addPlayerControlListenerOnButton(){
+		
+		previousB =(ImageButton) findViewById(R.id.previousBtn);
+		previousB.setOnClickListener(new OnClickListener() {
 
+			@Override
+			public void onClick(View arg0) {
+				// TODO Auto-generated method stub
+				Toast.makeText(MainActivity.this, "Previous Button Clicked", Toast.LENGTH_SHORT).show();		
+			}		
+		});
+		
+		playB = (ImageButton) findViewById(R.id.playBtn);
+		playB.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg1) {
+				Toast.makeText(MainActivity.this, "Play Button Clicked", Toast.LENGTH_SHORT).show();
+				playB.setImageResource(R.drawable.pausebtn);
+			}
+			
+		});
+		
+		forwardB =(ImageButton) findViewById(R.id.forwardBtn);
+		forwardB.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View arg2) {
+				// TODO Auto-generated method stub
+				Toast.makeText(MainActivity.this, "Forward Button Clicked", Toast.LENGTH_SHORT).show();	
+			}
+		});
+	}
 }
