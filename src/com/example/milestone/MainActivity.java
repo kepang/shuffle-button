@@ -32,9 +32,8 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	private final int DURATION_INDEX = 3;
 	private final int ALBUM_INDEX = 4;
 	
-	ImageButton playB;
-	ImageButton forwardB;
-	ImageButton previousB;
+	ImageButton playB, nextB, previousB;
+	Boolean playBcheck = false;
 	
 	
 	MediaPlayer mPlayer;
@@ -63,7 +62,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		mCursor = contentResolver.query(uri, rq_columns, null, null, null);
 	    songsListSize = mCursor.getCount();
 	    
-	    addPlayerControlListenerOnButton();
+	    addMusicControlListenerOnButton();
 	
 	}
 	
@@ -180,9 +179,13 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	
 	
 	/************* button listeners *************/
-	public void addPlayerControlListenerOnButton(){
+	public void addMusicControlListenerOnButton(){
 		
+		//Music Player Buttons
 		previousB =(ImageButton) findViewById(R.id.previousBtn);
+		playB = (ImageButton) findViewById(R.id.playBtn);
+		nextB =(ImageButton) findViewById(R.id.nextBtn);
+		
 		previousB.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -192,24 +195,37 @@ public class MainActivity extends Activity implements OnCompletionListener {
 			}		
 		});
 		
-		playB = (ImageButton) findViewById(R.id.playBtn);
 		playB.setOnClickListener(new OnClickListener() {
 
 			@Override
-			public void onClick(View arg1) {
+			public void onClick(View arg0) {
 				Toast.makeText(MainActivity.this, "Play Button Clicked", Toast.LENGTH_SHORT).show();
-				playB.setImageResource(R.drawable.pausebtn);
+				if(!playBcheck){
+					playB.setImageResource(R.drawable.pausebtn);
+					playBcheck = true;
+				}else{
+					playB.setImageResource(R.drawable.playbtn);
+					playBcheck = false;
+				}	
 			}
 			
 		});
 		
-		forwardB =(ImageButton) findViewById(R.id.forwardBtn);
-		forwardB.setOnClickListener(new OnClickListener() {
+		//Next button event listener
+		
+		nextB.setOnClickListener(new OnClickListener() {
 
 			@Override
-			public void onClick(View arg2) {
-				// TODO Auto-generated method stub
-				Toast.makeText(MainActivity.this, "Forward Button Clicked", Toast.LENGTH_SHORT).show();	
+			public void onClick(View arg0) {
+				if(ID_INDEX < (songsListSize -1)){
+					Toast.makeText(MainActivity.this, "Next Button Clicked" + songsListSize + "ID" + ID_INDEX, Toast.LENGTH_SHORT).show();
+					//play songindex +1
+				//	playcurrent song+
+				}else{
+				 //play ID_INDEX 0
+					Toast.makeText(MainActivity.this, "INDEX SONG ONE WILL PLAY", Toast.LENGTH_SHORT).show();	
+				}
+				
 			}
 		});
 	}
