@@ -91,8 +91,10 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	@Override
 	protected void onPause() {
 		// TODO Auto-generated method stub
-		mPlayer.release();
-		mPlayer = null;
+		if (mPlayer != null) {
+			mPlayer.release();
+			mPlayer = null;	
+		}
 		super.onPause();
 	}
 	
@@ -118,7 +120,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 
 	private void start(long id) {
 		Uri myUri = ContentUris.withAppendedId(
-		        android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+				android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
 		
 		try {
 			mPlayer.reset();
@@ -137,6 +139,9 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		}
 		catch (SecurityException e) {
 			e.printStackTrace();			
+		}
+		catch (RuntimeException e) {
+			e.printStackTrace();
 		}
 		
 		
