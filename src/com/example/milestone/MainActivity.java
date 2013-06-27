@@ -74,7 +74,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		    //int titleColumn = mCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE);
 		    //int idColumn = mCursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID);
 		    
-			mCursor.moveToPosition(new Random().nextInt(songsListSize + 1));
+			mCursor.moveToPosition(new Random().nextInt(songsListSize));
 			tv_songTitle.setText(mCursor.getString(ARTIST_INDEX));
 			tv_songTitle.append("\n" + mCursor.getString(TITLE_INDEX));
 			tv_songTitle.append("\n" + mCursor.getLong(ID_INDEX));
@@ -84,6 +84,8 @@ public class MainActivity extends Activity implements OnCompletionListener {
 
 			mPlayer = new MediaPlayer();
 			mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		    mPlayer.setOnCompletionListener(this);
+
 			start(id);
 		}			
 	}
@@ -116,6 +118,9 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+	
+	
+	
 	
 
 	private void start(long id) {
@@ -158,6 +163,14 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	public void onCompletion(MediaPlayer mp) {
 		// TODO Auto-generated method stub
 		Toast.makeText(this, "on completion", Toast.LENGTH_SHORT).show();
+		mCursor.moveToPosition(new Random().nextInt(songsListSize));
+		tv_songTitle.setText(mCursor.getString(ARTIST_INDEX));
+		tv_songTitle.append("\n" + mCursor.getString(TITLE_INDEX));
+		tv_songTitle.append("\n" + mCursor.getLong(ID_INDEX));
+		
+		// ID to send to music player which song to play
+		long id = mCursor.getLong(ID_INDEX);
+		start(id);
 	}
 	
 	
