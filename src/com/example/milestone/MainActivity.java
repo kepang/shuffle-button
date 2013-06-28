@@ -222,17 +222,10 @@ public class MainActivity extends Activity implements OnCompletionListener {
 			@Override
 			public void onClick(View arg0) {
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 				if(ID_INDEX < (songsListSize -1)){
 					mPlayer.stop();
 					mCursor.moveToPosition(new Random().nextInt(songsListSize));
 
-
-=======
->>>>>>> f9982355d0ef9dcbc0f275923c963910c3ecb14f
-=======
->>>>>>> f9982355d0ef9dcbc0f275923c963910c3ecb14f
 				mPlayer.stop();
 				long id = moveCursorToNextSong();
 				playSong(id);
