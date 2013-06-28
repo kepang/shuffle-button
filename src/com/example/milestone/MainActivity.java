@@ -154,7 +154,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		}
 		
 		
-		mPlayer.start();
+		//mPlayer.start(); 
 		
 		
 		
@@ -186,6 +186,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		playB = (ImageButton) findViewById(R.id.playBtn);
 		nextB =(ImageButton) findViewById(R.id.nextBtn);
 		
+		//Calls the previous song on the playlist
 		previousB.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -195,6 +196,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 			}		
 		});
 		
+		//Play or pause song
 		playB.setOnClickListener(new OnClickListener() {
 
 			@Override
@@ -203,9 +205,11 @@ public class MainActivity extends Activity implements OnCompletionListener {
 				if(!playBcheck){
 					playB.setImageResource(R.drawable.pausebtn);
 					playBcheck = true;
+					mPlayer.start();
 				}else{
 					playB.setImageResource(R.drawable.playbtn);
 					playBcheck = false;
+					mPlayer.pause();
 				}	
 			}
 			
@@ -218,7 +222,10 @@ public class MainActivity extends Activity implements OnCompletionListener {
 			@Override
 			public void onClick(View arg0) {
 				if(ID_INDEX < (songsListSize -1)){
-					Toast.makeText(MainActivity.this, "Next Button Clicked" + songsListSize + "ID" + ID_INDEX, Toast.LENGTH_SHORT).show();
+					//Toast.makeText(MainActivity.this, "Next Button Clicked" + songsListSize + "ID" + ID_INDEX, Toast.LENGTH_SHORT).show();
+					mPlayer.stop();
+					mCursor.moveToPosition(new Random().nextInt(songsListSize));
+					mPlayer.start();
 					//play songindex +1
 				//	playcurrent song+
 				}else{
