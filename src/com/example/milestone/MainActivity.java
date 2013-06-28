@@ -2,11 +2,14 @@ package com.example.milestone;
 
 import java.io.IOException;
 import java.util.Random;
-import java.util.Stack;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.LoaderManager;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.database.Cursor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -14,7 +17,6 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -29,7 +31,6 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	private final int TITLE_INDEX = 2;
 	private final int DURATION_INDEX = 3;
 	private final int ALBUM_INDEX = 4;
-	private final String TAG = "DEBUG: ";
 	
 	ImageButton playB, nextB, previousB;
 	Boolean playBcheck = false;
@@ -39,7 +40,6 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	Cursor mCursor;
 	TextView tv_songTitle;
 	int songsListSize;
-	
 	String rq_columns[] = {
 			
 			MediaStore.Audio.Media._ID,
@@ -72,21 +72,29 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		super.onResume();
 		if (mCursor == null) {
 		    // query failed, handle error.
-			tv_songTitle.setText("Cursor query failed");
+			tv_songTitle.setText("query failed, handle error");
 		} 
 		else if (!mCursor.moveToFirst()) {
 		    // no media on the device
-			tv_songTitle.setText("No songs in the device");
+			tv_songTitle.setText("no media in the device");
 		}
 		else {
-			// system song ID to send to music player which song to play
-			long id = moveCursorToNextSong();
+		    //int titleColumn = mCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE);
+		    //int idColumn = mCursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID);
+		    
+			mCursor.moveToPosition(new Random().nextInt(songsListSize));
+			tv_songTitle.setText(mCursor.getString(ARTIST_INDEX));
+			tv_songTitle.append("\n" + mCursor.getString(TITLE_INDEX));
+			tv_songTitle.append("\n" + mCursor.getLong(ID_INDEX));
+			
+			// ID to send to music player which song to play
+			long id = mCursor.getLong(ID_INDEX);
 
 			mPlayer = new MediaPlayer();
 			mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		    mPlayer.setOnCompletionListener(this);
 
-			playSong(id);
+			start(id);
 		}			
 	}
 	
@@ -103,18 +111,13 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	@Override
 	protected void onStop() {
 		// TODO Auto-generated method stub
-
 		super.onStop();
-
 	}
 	
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		if (mCursor != null) {
-			mCursor.close();
-		}
 	}
 
 	@Override
@@ -124,12 +127,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		return true;
 	}
 	
-	/*********** PRIVATE METHODS ************/
-	
-	// Play Song. INPUT: system song id
-	private void playSong(long id) {
-
-		
+	private void start(long id) {
 		Uri myUri = ContentUris.withAppendedId(
 				android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
 		
@@ -155,22 +153,12 @@ public class MainActivity extends Activity implements OnCompletionListener {
 			e.printStackTrace();
 		}
 		
-		// Update text
-		tv_songTitle.setText(mCursor.getString(ARTIST_INDEX));
-		tv_songTitle.append("\n" + mCursor.getString(TITLE_INDEX));
-		tv_songTitle.append("\n" + mCursor.getLong(ID_INDEX));
+		
+		//mPlayer.start(); 
+		
+		
 		
 	}
-	
-	private long moveCursorToNextSong() {
-		// Get next song
-		mCursor.moveToPosition(new Random().nextInt(songsListSize));
-		// ID to send to music player which song to play
-		long id = mCursor.getLong(ID_INDEX);
-		
-		return id;
-	}
-	
 
 	/************ LISTENERS ******************/
 	// onCompletion
@@ -178,8 +166,15 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		// TODO Auto-generated method stub
-		Log.i(TAG, "onCompletion");
-		playSong(moveCursorToNextSong());
+		Toast.makeText(this, "on completion", Toast.LENGTH_SHORT).show();
+		mCursor.moveToPosition(new Random().nextInt(songsListSize));
+		tv_songTitle.setText(mCursor.getString(ARTIST_INDEX));
+		tv_songTitle.append("\n" + mCursor.getString(TITLE_INDEX));
+		tv_songTitle.append("\n" + mCursor.getLong(ID_INDEX));
+		
+		// ID to send to music player which song to play
+		long id = mCursor.getLong(ID_INDEX);
+		start(id);
 	}
 	
 	
@@ -206,7 +201,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 
 			@Override
 			public void onClick(View arg0) {
-				//Toast.makeText(MainActivity.this, "Play Button Clicked", Toast.LENGTH_SHORT).show();
+				Toast.makeText(MainActivity.this, "Play Button Clicked", Toast.LENGTH_SHORT).show();
 				if(!playBcheck){
 					playB.setImageResource(R.drawable.pausebtn);
 					playBcheck = true;
@@ -226,19 +221,36 @@ public class MainActivity extends Activity implements OnCompletionListener {
 
 			@Override
 			public void onClick(View arg0) {
+
+<<<<<<< HEAD
 <<<<<<< HEAD
 				if(ID_INDEX < (songsListSize -1)){
 					mPlayer.stop();
 					mCursor.moveToPosition(new Random().nextInt(songsListSize));
+
+
 =======
-				
+>>>>>>> f9982355d0ef9dcbc0f275923c963910c3ecb14f
+=======
+>>>>>>> f9982355d0ef9dcbc0f275923c963910c3ecb14f
 				mPlayer.stop();
 				long id = moveCursorToNextSong();
 				playSong(id);
 				if (playBcheck) {
->>>>>>> ef9063e740a5192c2e7d712496da41218dd61cc0
+
+				if(ID_INDEX < (songsListSize -1)){
+					//Toast.makeText(MainActivity.this, "Next Button Clicked" + songsListSize + "ID" + ID_INDEX, Toast.LENGTH_SHORT).show();
+					mPlayer.stop();
+					mCursor.moveToPosition(new Random().nextInt(songsListSize));
+
 					mPlayer.start();
+					//play songindex +1
+				//	playcurrent song+
+				}else{
+				 //play ID_INDEX 0
+					Toast.makeText(MainActivity.this, "INDEX SONG ONE WILL PLAY", Toast.LENGTH_SHORT).show();	
 				}
+				
 			}
 		});
 	}
