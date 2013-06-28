@@ -222,7 +222,6 @@ public class MainActivity extends Activity implements OnCompletionListener {
 			@Override
 			public void onClick(View arg0) {
 				if(ID_INDEX < (songsListSize -1)){
-					//Toast.makeText(MainActivity.this, "Next Button Clicked" + songsListSize + "ID" + ID_INDEX, Toast.LENGTH_SHORT).show();
 					mPlayer.stop();
 					mCursor.moveToPosition(new Random().nextInt(songsListSize));
 					mPlayer.start();
