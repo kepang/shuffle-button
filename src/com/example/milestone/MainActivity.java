@@ -2,8 +2,6 @@ package com.example.milestone;
 
 import java.io.IOException;
 import java.util.Random;
-import java.util.Stack;
-
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -13,12 +11,15 @@ import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,14 +30,17 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	private final int TITLE_INDEX = 2;
 	private final int DURATION_INDEX = 3;
 	private final int ALBUM_INDEX = 4;
-	private final String TAG = "DEBUG: ";
+	private final String TAG = "DEBUG";
+	private final int TIMER = 1000;
 	
 	ImageButton playB, nextB, previousB;
+	SeekBar seekBar;
 	Boolean playBcheck = false;
 	
 	
 	MediaPlayer mPlayer;
 	Cursor mCursor;
+	Handler mHandler;
 	TextView tv_songTitle;
 	int songsListSize;
 	
@@ -57,6 +61,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		
 		tv_songTitle = (TextView) findViewById(R.id.tv_songTitle);
 
+		mHandler = new Handler();
 		ContentResolver contentResolver = getContentResolver();
 		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 		mCursor = contentResolver.query(uri, rq_columns, null, null, null);
@@ -86,7 +91,13 @@ public class MainActivity extends Activity implements OnCompletionListener {
 			mPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 		    mPlayer.setOnCompletionListener(this);
 
-			playSong(id);
+		    selectSong(id);
+		    
+		    // init seekbar
+		    seekBar.setProgress(0);
+		    seekBar.setMax(100);
+		    updateSeekBar();
+		    autoPlay();
 		}			
 	}
 	
@@ -94,6 +105,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	protected void onPause() {
 		// TODO Auto-generated method stub
 		if (mPlayer != null) {
+			mPlayer.stop();
 			mPlayer.release();
 			mPlayer = null;	
 		}
@@ -115,6 +127,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		if (mCursor != null) {
 			mCursor.close();
 		}
+
 	}
 
 	@Override
@@ -124,10 +137,41 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		return true;
 	}
 	
+	public void updateSeekBar() {
+		mHandler.postDelayed(timerThread, TIMER);
+	}
+	
 	/*********** PRIVATE METHODS ************/
+	// SeekBar and song timer update thread
+	private Runnable timerThread = new Runnable() {
+
+		@Override
+		public void run() {
+			// TODO Auto-generated method stub
+			long duration;
+			long position;
+
+			// Make sure main thread has not released the mPlayer
+			if (mPlayer != null) {
+				duration = mPlayer.getDuration();
+				position = mPlayer.getCurrentPosition();	
+				int progress = (int) (100*position/duration);	
+				// update seekbar position
+
+				seekBar.setProgress(progress);
+			}
+				
+
+
+			//Log.d(TAG, progress + "=(100)" + position + "/" + duration);
+			mHandler.postDelayed(timerThread, TIMER);
+		}
+		
+	};
+	
 	
 	// Play Song. INPUT: system song id
-	private void playSong(long id) {
+	private void selectSong(long id) {
 
 		
 		Uri myUri = ContentUris.withAppendedId(
@@ -171,6 +215,13 @@ public class MainActivity extends Activity implements OnCompletionListener {
 		return id;
 	}
 	
+	private void autoPlay() {
+		playB.setImageResource(R.drawable.pausebtn);
+		playBcheck = true;
+		mPlayer.start();
+		
+	}
+	
 
 	/************ LISTENERS ******************/
 	// onCompletion
@@ -179,17 +230,53 @@ public class MainActivity extends Activity implements OnCompletionListener {
 	public void onCompletion(MediaPlayer mp) {
 		// TODO Auto-generated method stub
 		Log.i(TAG, "onCompletion");
-		playSong(moveCursorToNextSong());
+		selectSong(moveCursorToNextSong());
+		mPlayer.start();
 	}
 	
 	
 	/************* button listeners *************/
 	public void addMusicControlListenerOnButton(){
 		
+		// SeekBar
+		seekBar = (SeekBar) findViewById(R.id.seekBar);
+		
 		//Music Player Buttons
 		previousB =(ImageButton) findViewById(R.id.previousBtn);
 		playB = (ImageButton) findViewById(R.id.playBtn);
 		nextB =(ImageButton) findViewById(R.id.nextBtn);
+		
+		// SeekBar Callback
+		seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				mHandler.removeCallbacks(timerThread);
+				
+				int progress = seekBar.getProgress();
+				long duration = mPlayer.getDuration();
+				int time = (int) (progress * duration) / 100;
+				//Log.i(TAG, progress + ":" + duration + ":" + time);
+
+				mPlayer.seekTo(time); // seekto in msec 
+				updateSeekBar();
+				
+			}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				mHandler.removeCallbacks(timerThread);				
+			}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				// TODO Auto-generated method stub
+
+			}
+		});
 		
 		//Calls the previous song on the playlist
 		previousB.setOnClickListener(new OnClickListener() {
@@ -197,7 +284,9 @@ public class MainActivity extends Activity implements OnCompletionListener {
 			@Override
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
-				Toast.makeText(MainActivity.this, "Previous Button Clicked", Toast.LENGTH_SHORT).show();		
+				Log.i(TAG, "Previous Button Clicked");	
+				mPlayer.seekTo(0);
+				updateSeekBar();
 			}		
 		});
 		
@@ -206,7 +295,6 @@ public class MainActivity extends Activity implements OnCompletionListener {
 
 			@Override
 			public void onClick(View arg0) {
-				//Toast.makeText(MainActivity.this, "Play Button Clicked", Toast.LENGTH_SHORT).show();
 				if(!playBcheck){
 					playB.setImageResource(R.drawable.pausebtn);
 					playBcheck = true;
@@ -229,7 +317,7 @@ public class MainActivity extends Activity implements OnCompletionListener {
 
 				mPlayer.stop();
 				long id = moveCursorToNextSong();
-				playSong(id);
+				selectSong(id);
 				if (playBcheck) {
 					mPlayer.start();
 				}

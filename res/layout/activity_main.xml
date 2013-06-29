@@ -43,4 +43,12 @@
         android:layout_toRightOf="@+id/playBtn"
         android:background="@drawable/nextbtn" />
 
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/playBtn"
+        android:layout_alignParentLeft="true"
+        android:layout_marginBottom="36dp" />
+
 </RelativeLayout>
