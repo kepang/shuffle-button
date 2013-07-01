@@ -20,7 +20,7 @@
         android:id="@+id/playBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/previousBtn"
+        android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:background="@drawable/play_button_states" />
 
@@ -28,19 +28,16 @@
         android:id="@+id/previousBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/tv_songTitle"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="32dp"
-        android:layout_marginLeft="34dp"
+        android:layout_alignParentLeft="true"
         android:background="@drawable/previousbtn" />
 
     <ImageButton
         android:id="@+id/nextBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/playBtn"
-        android:layout_marginLeft="39dp"
-        android:layout_toRightOf="@+id/playBtn"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
         android:background="@drawable/nextbtn" />
 
     <SeekBar
