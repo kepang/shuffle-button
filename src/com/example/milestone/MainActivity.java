@@ -93,7 +93,8 @@ public class MainActivity extends Activity {
 	    
 	    // Save song info and progress for orientation change
 	    if (savedInstanceState != null) {
-	    	bundle = savedInstanceState;
+	    	bundle = new Bundle(savedInstanceState);
+	    	Log.i(TAG, "savedInstance trackposn:" + savedInstanceState.getInt("Position"));
 	    }
 	    else {
 	    	bundle = null;
@@ -105,14 +106,20 @@ public class MainActivity extends Activity {
 		protected void onSaveInstanceState(Bundle outState) {
 			super.onSaveInstanceState(outState);
 			try {
-				Log.i(TAG, "debug parseInt id: " + id);
-				long songID = (long) Integer.parseInt(id);
-				songID = mService.mCursor.getLong(ID_INDEX);
+				
+				long songID = mService.mCursor.getLong(ID_INDEX);
 				int trackPosn = mService.mp.getCurrentPosition();
-				outState.putLong("ID", songID);
-				outState.putInt("Position", trackPosn);
-				Log.i(TAG, "outstate id: " + id);
+				
+				Log.i(TAG, "outstate songID: " + songID);
 				Log.i(TAG, "mCursor.getPosition(): " + mService.mCursor.getPosition());
+				Log.i(TAG, "save trackPosn: " + trackPosn);
+				
+				outState.putLong("ID", songID);
+				outState.putInt("Position", trackPosn);	
+				// when activity only goes to stop then start
+				bundle.putLong("ID", songID);
+				bundle.putInt("Position", trackPosn);
+
 				
 			}
 			catch (NullPointerException e) {
@@ -153,7 +160,7 @@ public class MainActivity extends Activity {
 				intent.putExtra("Position", bundle.getInt("Position"));
 				intent.putExtra("Cursor", bundle.getInt("Cursor"));
 				autoPlayRequest = false;
-				Log.i(TAG, "bundle: mpid: " + bundle.getLong("ID"));
+				Log.i(TAG, "bundle: trackPosn: " + bundle.getInt("Position"));
 			}
 			this.startService(intent);
 			
@@ -206,7 +213,9 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-
+		Log.i(TAG, "onDestroy");
+		bundle = null;
+		
 	}
 
 	@Override
@@ -284,7 +293,7 @@ public class MainActivity extends Activity {
 		
 		// Time info
 		String fillzero = "";
-		Log.i(TAG, "debug parseInt duration val:" + duration);
+		Log.i(TAG, "debug parseLong duration val:" + duration);
 		int timeInSeconds = (int) (Long.parseLong(duration) / 1000); // duration is a string
 		int minutes = timeInSeconds / 60;
 		int seconds = timeInSeconds % 60;
@@ -296,9 +305,10 @@ public class MainActivity extends Activity {
 		
 		// Update Play button
 		if (mService != null) {
-			Log.i(TAG, "mp:" + mService.mp.toString());
 			if (mService.mp != null) {
 				isPlaying = mService.mp.isPlaying();
+				Log.i(TAG, "mp:" + mService.mp.toString());
+
 			}
 		}
 
