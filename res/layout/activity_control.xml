@@ -5,21 +5,24 @@
     android:layout_height="match_parent" >
 
     <ToggleButton
-        android:id="@+id/toggleButton1"
+        android:id="@+id/shakeTB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_marginLeft="40dp"
+        android:layout_marginLeft="58dp"
+        android:layout_marginTop="48dp"
+        
         android:layout_toRightOf="@+id/textView1"
-        android:text="ToggleButton" />
+        android:textOFF="OFF" 
+        android:textOn="ON"/>
 
     <TextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:text="Medium Text"
+        android:layout_alignTop="@+id/shakeTB"
+        android:text="Shake Sensor"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <TextView
@@ -27,8 +30,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/toggleButton1"
-        android:layout_marginTop="25dp"
+        android:layout_below="@+id/shakeTB"
+        android:layout_marginTop="39dp"
         android:text="Medium Text"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
@@ -36,7 +39,7 @@
         android:id="@+id/toggleButton2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/toggleButton1"
+        android:layout_alignRight="@+id/shakeTB"
         android:layout_alignTop="@+id/textView2"
         android:text="ToggleButton" />
 

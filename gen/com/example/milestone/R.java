@@ -40,9 +40,9 @@ public final class R {
         public static final int previousBtn=0x7f080009;
         public static final int rLayout=0x7f080005;
         public static final int seekBar=0x7f080007;
+        public static final int shakeTB=0x7f080001;
         public static final int textView1=0x7f080002;
         public static final int textView2=0x7f080003;
-        public static final int toggleButton1=0x7f080001;
         public static final int toggleButton2=0x7f080004;
         public static final int tv_songTitle=0x7f080006;
     }
