@@ -115,8 +115,9 @@ public class MainActivity extends Activity {
 				Log.i(TAG, "save trackPosn: " + trackPosn);
 				
 				outState.putLong("ID", songID);
-				outState.putInt("Position", trackPosn);	
+				outState.putInt("Position", trackPosn);
 				// when activity only goes to stop then start
+				Log.i(TAG, bundle.toString());
 				bundle.putLong("ID", songID);
 				bundle.putInt("Position", trackPosn);
 
@@ -151,6 +152,7 @@ public class MainActivity extends Activity {
 			// Fresh start of the app
 			if (bundle == null) {
 				intent = new Intent(ACTION_PLAY, null, this, MpService.class);
+				bundle = new Bundle();
 				autoPlayRequest = true;
 			}
 			// Orientation Change
