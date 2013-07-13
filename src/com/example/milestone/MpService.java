@@ -105,13 +105,13 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		                PendingIntent.FLAG_UPDATE_CURRENT);
 		
 		notification = new Notification();
-		notification.tickerText = "ticker";
+		notification.tickerText = "Woooooooooooo!";
 		notification.icon = R.drawable.ic_launcher;
 		notification.flags |= Notification.FLAG_ONGOING_EVENT;
 		notification.setLatestEventInfo(getApplicationContext(), "Music Player", "Running", pi);
 		
 		//startForeground(NOTIFICATION_ID, notification);
-		startForeground(4711, notification);
+		//startForeground(4711, notification);
 
 	}
 	
@@ -308,11 +308,13 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 
 	
 	public void startMusic() {
+		startForeground(4711, notification);
 		mp.start();
 	}
 	
 	public void pauseMusic() {
 		mp.pause();
+		stopForeground(true);
 	}
 	
 	public void playNext() {

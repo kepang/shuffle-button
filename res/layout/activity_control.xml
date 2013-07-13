@@ -13,7 +13,7 @@
         android:layout_marginTop="48dp"
         
         android:layout_toRightOf="@+id/textView1"
-        android:textOFF="OFF" 
+        android:textOff="OFF" 
         android:textOn="ON"/>
 
     <TextView

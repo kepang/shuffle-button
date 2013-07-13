@@ -205,11 +205,13 @@ public class MainActivity extends Activity {
 	protected void onStop() {
 		super.onStop();
 		// Stop Music Player Service if song is not playing
+		
 		if (!mService.mp.isPlaying()) {
 			Log.i(TAG, "Call stopService()");
 
 			mService.stopService();
 		}
+		
 	}
 	
 	@Override
