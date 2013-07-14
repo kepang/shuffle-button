@@ -52,4 +52,15 @@
         android:layout_alignTop="@+id/previousBtn"
         android:background="@drawable/nextbtn" />
 
+    <TextView
+        android:id="@+id/tv_songTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/playBtn"
+        android:layout_alignRight="@+id/seekBar"
+        android:layout_marginBottom="20dp"
+        android:text="TextView"
+        android:gravity="right"
+        android:textColor="@color/textColor" />
+
 </RelativeLayout>

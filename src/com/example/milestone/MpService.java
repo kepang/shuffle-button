@@ -37,7 +37,7 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	private final int DURATION_INDEX = 3;
 	private final int ALBUM_INDEX = 4;
 	private final String TAG = "Debug Svc";
-	private final int TIMER = 1000;
+	private final int TIMER = 100;
 	private final String ACTION_PLAY = "com.example.milestone.PLAY";
 	private final String ACTION_RESUME = "com.example.milestone.RESUME";
 	private final String BROADCAST_STR = "MP Actions";
@@ -286,6 +286,7 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		String[] msg = {songArtist, songTitle, songDuration, songID};
 		
 		sendMessage(MSG_SONGINFO, msg);
+		notification.setLatestEventInfo(this, songTitle, songArtist, pi);
 		
 	}
 	
