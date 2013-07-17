@@ -11,6 +11,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -30,7 +33,7 @@ import android.widget.Toast;
 
 
 
-public class MainActivity extends Activity implements OnGestureListener {
+public class MainActivity extends Activity implements OnGestureListener, SensorEventListener {
 
 	
 	private final int ID_INDEX = 0;
@@ -598,5 +601,17 @@ public class MainActivity extends Activity implements OnGestureListener {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 	return gDetector.onTouchEvent(event);
+	}
+
+	@Override
+	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSensorChanged(SensorEvent event) {
+		// TODO Auto-generated method stub
+		
 	}
 }
