@@ -59,8 +59,8 @@
         android:layout_above="@+id/playBtn"
         android:layout_alignRight="@+id/seekBar"
         android:layout_marginBottom="20dp"
-        android:text="TextView"
         android:gravity="right"
+        android:text="TextView"
         android:textColor="@color/textColor" />
 
 </RelativeLayout>
