@@ -11,6 +11,10 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="58dp"
         android:layout_marginTop="48dp"
+<<<<<<< HEAD
+=======
+        
+>>>>>>> 5fa20d92d39a78880b101dcc6ad63e0fa0877d51
         android:layout_toRightOf="@+id/tv_songTime"
         android:textOff="OFF" 
         android:textOn="ON"/>

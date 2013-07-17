@@ -32,6 +32,7 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity implements OnGestureListener {
 
+	
 	private final int ID_INDEX = 0;
 	private final int ARTIST_INDEX = 1;
 	private final int TITLE_INDEX = 2;
