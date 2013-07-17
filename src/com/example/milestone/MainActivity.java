@@ -2,6 +2,7 @@ package com.example.milestone;
 
 import com.example.milestone.MpService;
 import com.example.milestone.MpService.LocalBinder;
+
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -26,14 +27,13 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	
 	private final int ID_INDEX = 0;
 	private final int ARTIST_INDEX = 1;
 	private final int TITLE_INDEX = 2;
 	private final int DURATION_INDEX = 3;
 	private final int ALBUM_INDEX = 4;
 	private final String TAG = "Debug Activity";
-	private final int TIMER = 100;
+	private final int TIMER = 1000;
 	private final String ACTION_PLAY = "com.example.milestone.PLAY";
 	private final String ACTION_RESUME = "com.example.milestone.RESUME";
 	private final String BROADCAST_STR = "MP Actions";
@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
 	Boolean playBcheck = false;
 	
 	Handler mHandler;
-	TextView tv_songTitle, tv_songTime;
+	TextView tv_songTitle;
 	int songsListSize;
 	Bundle bundle;
 	
@@ -85,7 +85,6 @@ public class MainActivity extends Activity {
 		
 		// init UI
 		tv_songTitle = (TextView) findViewById(R.id.tv_songTitle);
-		tv_songTime = (TextView) findViewById(R.id.tv_songTime);
 		mHandler = new Handler();
 	    addMusicControlListenerOnButton();
 
@@ -386,8 +385,6 @@ public class MainActivity extends Activity {
 				
 				// update seekbar position
 				seekBar.setProgress(progress);
-				// update timer
-				tv_songTime.setText(msecToTime((int)position));
 			}
 				
 			mHandler.postDelayed(timerThread, TIMER);
@@ -404,18 +401,6 @@ public class MainActivity extends Activity {
 	    //updateSeekBar();
 	}
 	
-	private String msecToTime(int msec) {
-		String fillzero = "";
-		
-		int timeInSeconds = msec/ 1000;
-		int minutes = timeInSeconds / 60;
-		int seconds = timeInSeconds % 60;
-		if (seconds < 10) {
-			fillzero = "0";
-		}
-		
-		return minutes + ":" + fillzero + seconds;
-	}
 
 	/************ LISTENERS ******************/	
 	/************* BUTTONS *************/
