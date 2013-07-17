@@ -14,6 +14,7 @@ import android.content.ServiceConnection;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -59,6 +60,10 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	// Gesture
 	private GestureDetector gDetector;
 	private static final int LARGE_MOVE=60;
+	
+	//Accelerometer Sensor
+	private SensorManager sensorManager;
+	private Sensor myAccelerometer;
 	
 	// Service Variables
 	Intent intent;
