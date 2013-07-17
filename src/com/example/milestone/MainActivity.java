@@ -2,7 +2,6 @@ package com.example.milestone;
 
 import com.example.milestone.MpService;
 import com.example.milestone.MpService.LocalBinder;
-
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -18,14 +17,20 @@ import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends Activity {
+
+
+public class MainActivity extends Activity implements OnGestureListener {
 
 	private final int ID_INDEX = 0;
 	private final int ARTIST_INDEX = 1;
@@ -33,7 +38,7 @@ public class MainActivity extends Activity {
 	private final int DURATION_INDEX = 3;
 	private final int ALBUM_INDEX = 4;
 	private final String TAG = "Debug Activity";
-	private final int TIMER = 1000;
+	private final int TIMER = 100;
 	private final String ACTION_PLAY = "com.example.milestone.PLAY";
 	private final String ACTION_RESUME = "com.example.milestone.RESUME";
 	private final String BROADCAST_STR = "MP Actions";
@@ -47,8 +52,10 @@ public class MainActivity extends Activity {
 	private final String MSG_PLAYER_READY = "msg player ready";
 	private final String MSG_PLAYER_ISPLAYING = "msg player isplaying";
 	
+	// Gesture
+	private GestureDetector gDetector;
+	private static final int LARGE_MOVE=60;
 	
-
 	// Service Variables
 	Intent intent;
 	MpService mService;
@@ -62,7 +69,7 @@ public class MainActivity extends Activity {
 	Boolean playBcheck = false;
 	
 	Handler mHandler;
-	TextView tv_songTitle;
+	TextView tv_songTitle, tv_songTime;
 	int songsListSize;
 	Bundle bundle;
 	
@@ -85,6 +92,7 @@ public class MainActivity extends Activity {
 		
 		// init UI
 		tv_songTitle = (TextView) findViewById(R.id.tv_songTitle);
+		tv_songTime = (TextView) findViewById(R.id.tv_songTime);
 		mHandler = new Handler();
 	    addMusicControlListenerOnButton();
 
@@ -99,7 +107,9 @@ public class MainActivity extends Activity {
 	    else {
 	    	bundle = null;
 	    }
-	
+	    
+	    gDetector = new GestureDetector(this);
+	            
 	}
 	
 	@Override
@@ -205,11 +215,13 @@ public class MainActivity extends Activity {
 	protected void onStop() {
 		super.onStop();
 		// Stop Music Player Service if song is not playing
+		
 		if (!mService.mp.isPlaying()) {
 			Log.i(TAG, "Call stopService()");
 
 			mService.stopService();
 		}
+		
 	}
 	
 	@Override
@@ -383,6 +395,8 @@ public class MainActivity extends Activity {
 				
 				// update seekbar position
 				seekBar.setProgress(progress);
+				// update timer
+				tv_songTime.setText(msecToTime((int)position));
 			}
 				
 			mHandler.postDelayed(timerThread, TIMER);
@@ -399,6 +413,18 @@ public class MainActivity extends Activity {
 	    //updateSeekBar();
 	}
 	
+	private String msecToTime(int msec) {
+		String fillzero = "";
+		
+		int timeInSeconds = msec/ 1000;
+		int minutes = timeInSeconds / 60;
+		int seconds = timeInSeconds % 60;
+		if (seconds < 10) {
+			fillzero = "0";
+		}
+		
+		return minutes + ":" + fillzero + seconds;
+	}
 
 	/************ LISTENERS ******************/	
 	/************* BUTTONS *************/
@@ -491,5 +517,77 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+	}
+
+	@Override
+	public boolean onDown(MotionEvent e) {
+		Toast.makeText(MainActivity.this, "STOP", Toast.LENGTH_SHORT).show();
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public boolean onFling(MotionEvent e1, MotionEvent e2, float velX, float velY) {
+		// TODO Auto-generated method stub
+		if((e1.getY()-e2.getY()) > LARGE_MOVE){
+			//up
+			//Toast.makeText(MainActivity.this, "UP", Toast.LENGTH_SHORT).show();
+			return true;
+		}
+		else
+			if((e2.getY()-e1.getY()) > LARGE_MOVE){
+				//down
+				//Toast.makeText(MainActivity.this, "Down", Toast.LENGTH_SHORT).show();
+				return true;
+			}
+			else
+				if((e1.getX()-e2.getX()) > LARGE_MOVE){
+					//left next song
+					Toast.makeText(MainActivity.this, "NextSong", Toast.LENGTH_SHORT).show();
+					if (mService != null) {
+						boolean isPlaying = mService.mp.isPlaying();
+						mService.playNext();
+						if (isPlaying) {
+							mService.startMusic();
+						}
+					}
+					return true;	
+				}
+				else
+					if((e2.getX()-e1.getX()) > LARGE_MOVE){
+						//right previous song
+						Toast.makeText(MainActivity.this, "PreviousSong", Toast.LENGTH_SHORT).show();
+						return true;
+					}
+		return false;
+	}
+
+	@Override
+	public void onLongPress(MotionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
+			float distanceY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void onShowPress(MotionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean onSingleTapUp(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+	return gDetector.onTouchEvent(event);
 	}
 }
