@@ -10,3 +10,7 @@ bin/Milestone.apk
 bin/resources.ap_
 
 bin/resources.ap_
+
+*.apk
+
+*.ap_
