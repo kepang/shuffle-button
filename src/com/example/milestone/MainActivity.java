@@ -74,7 +74,10 @@ public class MainActivity extends Activity implements OnGestureListener {
 	int songsListSize;
 	Bundle bundle;
 	
-	String artist, title, duration, id;
+	String artist = "";
+	String title = "";
+	String duration = "";
+	String id = "";
 	
 	String rq_columns[] = {
 			
@@ -309,6 +312,10 @@ public class MainActivity extends Activity implements OnGestureListener {
 		// Time info
 		String fillzero = "";
 		Log.i(TAG, "debug parseLong duration val:" + duration);
+		if (duration == "") {
+			duration = "0";
+		}
+		Log.i(TAG, "parseLong(duration):" + Long.parseLong(duration));
 		int timeInSeconds = (int) (Long.parseLong(duration) / 1000); // duration is a string
 		int minutes = timeInSeconds / 60;
 		int seconds = timeInSeconds % 60;
@@ -522,7 +529,6 @@ public class MainActivity extends Activity implements OnGestureListener {
 
 	@Override
 	public boolean onDown(MotionEvent e) {
-		Toast.makeText(MainActivity.this, "STOP", Toast.LENGTH_SHORT).show();
 		// TODO Auto-generated method stub
 		return true;
 	}
@@ -530,34 +536,36 @@ public class MainActivity extends Activity implements OnGestureListener {
 	@Override
 	public boolean onFling(MotionEvent e1, MotionEvent e2, float velX, float velY) {
 		// TODO Auto-generated method stub
-		if((e1.getY()-e2.getY()) > LARGE_MOVE){
-			//up
-			//Toast.makeText(MainActivity.this, "UP", Toast.LENGTH_SHORT).show();
-			return true;
-		}
-		else
-			if((e2.getY()-e1.getY()) > LARGE_MOVE){
-				//down
-				//Toast.makeText(MainActivity.this, "Down", Toast.LENGTH_SHORT).show();
-				return true;
-			}
-			else
+//		if((e1.getY()-e2.getY()) > LARGE_MOVE){
+//			//up
+//			//Toast.makeText(MainActivity.this, "UP", Toast.LENGTH_SHORT).show();
+//			return true;
+//		}
+//		else
+//			if((e2.getY()-e1.getY()) > LARGE_MOVE){
+//				//down
+//				//Toast.makeText(MainActivity.this, "Down", Toast.LENGTH_SHORT).show();
+//				return true;
+//			}
+//			else
 				if((e1.getX()-e2.getX()) > LARGE_MOVE){
 					//left next song
-					Toast.makeText(MainActivity.this, "NextSong", Toast.LENGTH_SHORT).show();
-					if (mService != null) {
-						boolean isPlaying = mService.mp.isPlaying();
-						mService.playNext();
-						if (isPlaying) {
-							mService.startMusic();
-						}
-					}
+					Toast.makeText(MainActivity.this, "Previous", Toast.LENGTH_SHORT).show();
+					mService.playPrev();
+					updateSeekBar();
 					return true;	
 				}
 				else
 					if((e2.getX()-e1.getX()) > LARGE_MOVE){
 						//right previous song
-						Toast.makeText(MainActivity.this, "PreviousSong", Toast.LENGTH_SHORT).show();
+						Toast.makeText(MainActivity.this, "Next Song", Toast.LENGTH_SHORT).show();
+						if (mService != null) {
+							boolean isPlaying = mService.mp.isPlaying();
+							mService.playNext();
+							if (isPlaying) {
+								mService.startMusic();
+							}
+						}
 						return true;
 					}
 		return false;
