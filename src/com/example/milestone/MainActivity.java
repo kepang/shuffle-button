@@ -17,14 +17,20 @@ import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends Activity {
+
+
+public class MainActivity extends Activity implements OnGestureListener {
 
 	
 	private final int ID_INDEX = 0;
@@ -47,8 +53,10 @@ public class MainActivity extends Activity {
 	private final String MSG_PLAYER_READY = "msg player ready";
 	private final String MSG_PLAYER_ISPLAYING = "msg player isplaying";
 	
+	// Gesture
+	private GestureDetector gDetector;
+	private static final int LARGE_MOVE=60;
 	
-
 	// Service Variables
 	Intent intent;
 	MpService mService;
@@ -100,7 +108,9 @@ public class MainActivity extends Activity {
 	    else {
 	    	bundle = null;
 	    }
-	
+	    
+	    gDetector = new GestureDetector(this);
+	            
 	}
 	
 	@Override
@@ -508,5 +518,77 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+	}
+
+	@Override
+	public boolean onDown(MotionEvent e) {
+		Toast.makeText(MainActivity.this, "STOP", Toast.LENGTH_SHORT).show();
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public boolean onFling(MotionEvent e1, MotionEvent e2, float velX, float velY) {
+		// TODO Auto-generated method stub
+		if((e1.getY()-e2.getY()) > LARGE_MOVE){
+			//up
+			//Toast.makeText(MainActivity.this, "UP", Toast.LENGTH_SHORT).show();
+			return true;
+		}
+		else
+			if((e2.getY()-e1.getY()) > LARGE_MOVE){
+				//down
+				//Toast.makeText(MainActivity.this, "Down", Toast.LENGTH_SHORT).show();
+				return true;
+			}
+			else
+				if((e1.getX()-e2.getX()) > LARGE_MOVE){
+					//left next song
+					Toast.makeText(MainActivity.this, "NextSong", Toast.LENGTH_SHORT).show();
+					if (mService != null) {
+						boolean isPlaying = mService.mp.isPlaying();
+						mService.playNext();
+						if (isPlaying) {
+							mService.startMusic();
+						}
+					}
+					return true;	
+				}
+				else
+					if((e2.getX()-e1.getX()) > LARGE_MOVE){
+						//right previous song
+						Toast.makeText(MainActivity.this, "PreviousSong", Toast.LENGTH_SHORT).show();
+						return true;
+					}
+		return false;
+	}
+
+	@Override
+	public void onLongPress(MotionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
+			float distanceY) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void onShowPress(MotionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean onSingleTapUp(MotionEvent e) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+	return gDetector.onTouchEvent(event);
 	}
 }
