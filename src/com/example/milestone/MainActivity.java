@@ -552,16 +552,15 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 //			}
 //			else
 				if((e1.getX()-e2.getX()) > LARGE_MOVE){
-					//left next song
-					Toast.makeText(MainActivity.this, "Previous", Toast.LENGTH_SHORT).show();
+					//left
 					mService.playPrev();
 					updateSeekBar();
+					Toast.makeText(MainActivity.this, "Previous", Toast.LENGTH_SHORT).show();
 					return true;	
 				}
 				else
 					if((e2.getX()-e1.getX()) > LARGE_MOVE){
-						//right previous song
-						Toast.makeText(MainActivity.this, "Next Song", Toast.LENGTH_SHORT).show();
+						//right
 						if (mService != null) {
 							boolean isPlaying = mService.mp.isPlaying();
 							mService.playNext();
@@ -569,6 +568,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 								mService.startMusic();
 							}
 						}
+						Toast.makeText(MainActivity.this, "Next Song", Toast.LENGTH_SHORT).show();
 						return true;
 					}
 		return false;
