@@ -121,6 +121,8 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    }
 	    
 	    gDetector = new GestureDetector(this);
+	    sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);	
+	    myAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	            
 	}
 	
@@ -204,6 +206,8 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			// Go to mConnection > onServiceConnection
 			bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 		}
+		 //register a listener for accelerometer sensors
+		 sensorManager.registerListener(this, myAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 	}
 	
 	@Override
@@ -221,6 +225,8 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 		// Unbind Broadcast Receiver
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
 		
+		//unregister sensorManager
+		sensorManager.unregisterListener(this);
 	}
 	
 	@Override
@@ -616,7 +622,29 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		// TODO Auto-generated method stub
+		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+		      getAccelerometer(event);
+		    }
 		
+	}
+	
+	private void getAccelerometer(SensorEvent event) {
+	    float[] values = event.values;
+	    // Movement
+	    float x = values[0];
+	    float y = values[1];
+	    float z = values[2];
+
+	    float accelationSquareRoot = (x * x + y * y + z * z)
+	        / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
+	    if (accelationSquareRoot >= 2) {
+	    	if (mService != null) {
+				boolean isPlaying = mService.mp.isPlaying();
+				mService.playNext();
+				if (isPlaying) {
+					mService.startMusic();
+				}
+			}	
+	    }
 	}
 }
