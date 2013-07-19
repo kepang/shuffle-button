@@ -64,6 +64,14 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	//Accelerometer Sensor
 	private SensorManager sensorManager;
 	private Sensor myAccelerometer;
+	private long prevTime = 0;
+	private long lastEventTime = 0;
+	private long startShakeTime = 0;
+	private long stopShakeTime = 0;
+	private long shakeTime = 0;
+	private final double TIME_DIFF = 500000000.0;
+	private final double NEXT_SONG_SHAKE_THRESHOLD = 1000000000.0;
+	private final double PAUSE_SONG_SHAKE_THRESHOLD = 1500000000.0;
 	
 	// Service Variables
 	Intent intent;
@@ -82,6 +90,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	int songsListSize;
 	Bundle bundle;
 	
+	// Song info
 	String artist = "";
 	String title = "";
 	String duration = "";
@@ -622,30 +631,89 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-		      getAccelerometer(event);
-		    }
-		
+		if (event.timestamp - prevTime > TIME_DIFF) {
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+				getAccelerometer(event);
+				prevTime = event.timestamp;
+			}
+			
+		}
 	}
 	
 	private void getAccelerometer(SensorEvent event) {
-	    float timer = event.timestamp;
+
 		float[] values = event.values;
+		
 	    // Movement
 	    float x = values[0];
 	    float y = values[1];
 	    float z = values[2];
 
-	    float accelationSquareRoot = (x * x + y * y + z * z)
+	    // Get rid of negative values
+	    float accellerationSquareRoot = (x * x + y * y + z * z)
 	        / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
-	    if (accelationSquareRoot >= 2) {
-	    	if (mService != null) {
-				boolean isPlaying = mService.mp.isPlaying();
-				mService.playNext();
-				if (isPlaying) {
-					mService.startMusic();
-				}
-			}	
+
+	    
+	    // Shake states: stop, undetermined, start
+	    // 0---(stop shake range)--->1.5--(undetermined range)-->2.0---(start shake range)--->
+	    
+	    
+	    // Listen for start shake
+	    if (accellerationSquareRoot >= 2) {
+	    	// Only record the start shake time if "stop shake listener" was triggered to reset timers
+	    	if (startShakeTime == 0) {
+	    		startShakeTime = event.timestamp;	
+	    	}   	
 	    }
+    	
+    	//Log.d(TAG, "accel: " + accellerationSquareRoot);
+
+	    
+	  	    
+	    // Listen for stop shake
+	    if (accellerationSquareRoot < 1.5) {
+	    	stopShakeTime = event.timestamp;
+	    	// Only record shakeTime if "start shake listener" was triggered to record timer
+	    	if (startShakeTime > 0) {
+	    		shakeTime = stopShakeTime - startShakeTime;
+	    		Log.d(TAG, "shakeTime " + shakeTime);
+	    	}
+
+	    	
+	    	
+	    	// START/PAUSE
+	    	if (shakeTime > PAUSE_SONG_SHAKE_THRESHOLD) {
+	    		Log.d(TAG, "long shake");
+				if (mService != null) {
+					if(!isPlaying){
+						playB.setImageResource(R.drawable.pausebtn);
+						playBcheck = true;
+						isPlaying = true;
+						mService.startMusic();
+					}else{
+						playB.setImageResource(R.drawable.playbtn);
+						playBcheck = false;
+						isPlaying = false;
+						mService.pauseMusic();
+					}
+				}
+	    	}
+	    	// NEXT SONG
+	    	else if (shakeTime > NEXT_SONG_SHAKE_THRESHOLD) {
+	    		Log.d(TAG, "short shake");
+		    	if (mService != null) {
+					boolean isPlaying = mService.mp.isPlaying();
+					mService.playNext();
+					if (isPlaying) {
+						mService.startMusic();
+					}
+				}
+	    	}
+	    	
+	    	// Reset timers
+	    	startShakeTime = 0;
+	    	shakeTime = 0;
+	    }
+		
 	}
 }
