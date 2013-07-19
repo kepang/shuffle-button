@@ -629,7 +629,8 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	}
 	
 	private void getAccelerometer(SensorEvent event) {
-	    float[] values = event.values;
+	    float timer = event.timestamp;
+		float[] values = event.values;
 	    // Movement
 	    float x = values[0];
 	    float y = values[1];
