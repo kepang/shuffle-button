@@ -575,7 +575,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 					//left
 					mService.playPrev();
 					updateSeekBar();
-					Toast.makeText(MainActivity.this, "Previous", Toast.LENGTH_SHORT).show();
+					Toast.makeText(MainActivity.this, "Back", Toast.LENGTH_SHORT).show();
 					return true;	
 				}
 				else
