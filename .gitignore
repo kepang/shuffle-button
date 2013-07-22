@@ -14,3 +14,5 @@ bin/resources.ap_
 bin/Milestone.apk
 
 bin/dexedLibs/android-support-v4-c5b2dc310395b56c7d0a5ad0fdffc8a1.jar
+
+*.class

@@ -2,6 +2,7 @@ package com.example.milestone;
 
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Random;
 
 import com.example.milestone.MainActivity;
@@ -14,6 +15,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -38,6 +40,7 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	private final int ALBUM_INDEX = 4;
 	private final String TAG = "Debug Svc";
 	private final int TIMER = 100;
+	private final int DOWNVOTE_TIMER = 5000;
 	private final String ACTION_PLAY = "com.example.milestone.PLAY";
 	private final String ACTION_RESUME = "com.example.milestone.RESUME";
 	private final String BROADCAST_STR = "MP Actions";
@@ -50,6 +53,9 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	private final String MSG_ACTION = "Action";
 	private final String MSG_PLAYER_READY = "msg player ready";
 	private final String MSG_PLAYER_ISPLAYING = "msg player isplaying";
+	
+
+	
 	
 	
     MediaPlayer mp = null;
@@ -75,7 +81,7 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 			
 	};
 	
-	
+	//DatabaseHelper db;
 	
 	
 	public MpService() {
@@ -112,7 +118,9 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		
 		//startForeground(NOTIFICATION_ID, notification);
 		//startForeground(4711, notification);
-
+		
+		//db = new DatabaseHelper(this);
+		
 	}
 	
 	@Override
@@ -203,6 +211,13 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	@Override
 	public void onCompletion(MediaPlayer mp) {
 		// TODO Auto-generated method stub
+//		Song s = db.getSong(mCursor.getLong(ID_INDEX));
+//				
+//		if (s != null) {
+//			Log.i(TAG, "adding UPVOTE for song:" + s.getSystemID());
+//			db.addUpVote(s.getSystemID());
+//		}
+		
 		selectSong(moveCursorToNextSong());
 		startMusic();
 	}
@@ -288,6 +303,20 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		sendMessage(MSG_SONGINFO, msg);
 		notification.setLatestEventInfo(this, songTitle, songArtist, pi);
 		
+		
+//		long sid = mCursor.getLong(ID_INDEX);
+//		long dur = mCursor.getLong(DURATION_INDEX);
+//		long rowID;
+//		Song s = db.getSong(sid);
+//		if (s == null) {
+//			rowID = db.addSong(new Song(0, sid, songArtist, songTitle, dur, 0, 0));
+//			Log.i(TAG, "Entered song into db. sid:" + sid + " ID:" + rowID);
+//
+//		}
+//		else {
+//			Log.i(TAG, "song already there:" + s.getArtist() + " " + s.getSystemID());
+//		}
+		
 	}
 	
 	// Cleanup is here
@@ -301,6 +330,10 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 			mp.release();
 			mp = null;	
 		}
+		
+//		if(db != null) {
+//			db.close();
+//		}
 		
 		stopForeground(true);
 		stopSelf();
@@ -319,6 +352,14 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	}
 	
 	public void playNext() {
+//		if (mp.getCurrentPosition() < DOWNVOTE_TIMER) {
+//			Song s = db.getSong(mCursor.getLong(ID_INDEX));
+//			
+//			if (s != null) {
+//				Log.i(TAG, "adding DOWNVOTE for song:" + s.getSystemID());
+//				db.addDownVote(s.getSystemID());
+//			}
+//		}
 		selectSong(moveCursorToNextSong());
 	}
 	

@@ -303,12 +303,12 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			if (action == MSG_PLAYER_READY) {
 				if (intent.getStringExtra(MSG_PLAYER_READY) == "1") {
 					playerReady = true;
-					Log.i(TAG, "msg player ready 1");
+					//Log.i(TAG, "msg player ready 1");
 
 				}
 				else {
 					playerReady = false;
-					Log.i(TAG, "msg player ready 0");
+					//Log.i(TAG, "msg player ready 0");
 
 				}
 			}
@@ -327,6 +327,8 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	
 	// Handle music player buttons, seekbar, song info, etc here
 	private void updateUI() {
+		int timeInSeconds;
+		
 		// Update Song Info
 		Log.i(TAG, "artist:" + artist + " title:" + title +" duration" + duration);
 		tv_songTitle.setText(artist);
@@ -335,11 +337,19 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 		// Time info
 		String fillzero = "";
 		Log.i(TAG, "debug parseLong duration val:" + duration);
-		if (duration == "") {
+		if (duration == "" || duration == "null" || duration == null) {
 			duration = "0";
+			Log.i(TAG, "parseLong(duration) == '' or 'null' or null");
 		}
-		Log.i(TAG, "parseLong(duration):" + Long.parseLong(duration));
-		int timeInSeconds = (int) (Long.parseLong(duration) / 1000); // duration is a string
+		try {
+			Log.i(TAG, "parseLong(duration):" + Long.parseLong(duration));
+			timeInSeconds = (int) (Long.parseLong(duration) / 1000); // duration is a string
+		}
+		catch (NumberFormatException e) {
+			e.printStackTrace();
+			timeInSeconds = 0;
+			Log.i(TAG, "ParseLong Number Exception Called");
+		}
 		int minutes = timeInSeconds / 60;
 		int seconds = timeInSeconds % 60;
 		if (seconds < 10) {
