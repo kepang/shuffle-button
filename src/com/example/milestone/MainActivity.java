@@ -575,7 +575,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 					//left
 					mService.playPrev();
 					updateSeekBar();
-					Toast.makeText(MainActivity.this, "Back", Toast.LENGTH_SHORT).show();
+					//Toast.makeText(MainActivity.this, "Back", Toast.LENGTH_SHORT).show();
 					return true;	
 				}
 				else
@@ -588,7 +588,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 								mService.startMusic();
 							}
 						}
-						Toast.makeText(MainActivity.this, "Next Song", Toast.LENGTH_SHORT).show();
+						//Toast.makeText(MainActivity.this, "Next Song", Toast.LENGTH_SHORT).show();
 						return true;
 					}
 		return false;
@@ -596,8 +596,17 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 
 	@Override
 	public void onLongPress(MotionEvent e) {
-		// TODO Auto-generated method stub
-		
+		if(!isPlaying){
+			playB.setImageResource(R.drawable.pausebtn);
+			playBcheck = true;
+			isPlaying = true;
+			mService.startMusic();
+		}else{
+			playB.setImageResource(R.drawable.playbtn);
+			playBcheck = false;
+			isPlaying = false;
+			mService.pauseMusic();
+		}
 	}
 
 	@Override
