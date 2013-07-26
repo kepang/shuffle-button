@@ -261,8 +261,9 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
+		
+		Intent prefsActivity = new Intent(this, PreferenceScreen.class);
+		startActivity(prefsActivity);
 		return true;
 	}
 	

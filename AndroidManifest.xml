@@ -24,7 +24,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name="com.example.milestone.PreferenceScreen"> 
+        </activity>
         <service
             android:name="com.example.milestone.MpService"
             android:enabled="true"
