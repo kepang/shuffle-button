@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -18,6 +19,7 @@ import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -73,6 +75,11 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	private final double NEXT_SONG_SHAKE_THRESHOLD = 1000000000.0;
 	private final double PAUSE_SONG_SHAKE_THRESHOLD = 1500000000.0;
 	
+	//SharedPreferences 
+//	SharedPreferences myPreferenceManager;
+//	Boolean gShake;
+	Boolean gSwiper = false;
+	
 	// Service Variables
 	Intent intent;
 	MpService mService;
@@ -110,7 +117,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
+			
 		// init UI
 		tv_songTitle = (TextView) findViewById(R.id.tv_songTitle);
 		tv_songTime = (TextView) findViewById(R.id.tv_songTime);
@@ -132,7 +139,9 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    gDetector = new GestureDetector(this);
 	    sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);	
 	    myAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-	            
+	    
+	    
+	    checkPref();
 	}
 	
 	@Override
@@ -172,7 +181,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		
+	
 		// Register Broadcast Receiver
 		IntentFilter iff = new IntentFilter(BROADCAST_STR);
 		LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, iff);
@@ -570,6 +579,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	@Override
 	public boolean onFling(MotionEvent e1, MotionEvent e2, float velX, float velY) {
 		// TODO Auto-generated method stub
+		if(gSwiper){
 //		if((e1.getY()-e2.getY()) > LARGE_MOVE){
 //			//up
 //			//Toast.makeText(MainActivity.this, "UP", Toast.LENGTH_SHORT).show();
@@ -602,6 +612,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 						//Toast.makeText(MainActivity.this, "Next Song", Toast.LENGTH_SHORT).show();
 						return true;
 					}
+		}
 		return false;
 	}
 
@@ -652,7 +663,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		if (event.timestamp - prevTime > TIME_DIFF) {
-			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)  {
 				getAccelerometer(event);
 				prevTime = event.timestamp;
 			}
@@ -735,5 +746,13 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    	shakeTime = 0;
 	    }
 		
+	}
+	
+	private void checkPref() {
+		SharedPreferences myPreferenceManager = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		
+		//Boolean gShake = myPreferenceManager.getBoolean("shake_update", false);
+		Boolean gSwipe = myPreferenceManager.getBoolean("gesture_update", true);
+		Toast.makeText(MainActivity.this, "Swipe " + gSwipe, Toast.LENGTH_SHORT).show();
 	}
 }

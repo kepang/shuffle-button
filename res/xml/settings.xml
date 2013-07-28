@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
     <PreferenceCategory android:title="Settings">
-        <ListPreference android:dialogTitle="Enable Shake Control" android:title="Shake" android:entries="@array/shaker" android:entryValues="@array/shaker_values"/>
-        <ListPreference android:dialogTitle="Enable Gesture Control" android:title="Gesture" android:entries="@array/gesture" android:entryValues="@array/gesture_values"/>
+        <CheckBoxPreference 
+            android:title="Shake Gesture"
+            android:summary="Enable or Disable shake gesture "
+            android:key="shaker_update" 
+            android:defaultValue="false"/>
+        <CheckBoxPreference android:summaryOn="ON"
+             android:summaryOff="OFF" 
+             android:key="gesture_update" 
+             android:title="Swipe Gesture" 
+             android:summary="Enable or disable swipe gesture" 
+             android:defaultValue="false"/>
     </PreferenceCategory>
     <Preference android:title="Exit" android:summary="This will exit settings" android:key="Button"/>
     
