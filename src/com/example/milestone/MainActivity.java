@@ -17,6 +17,7 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,6 +27,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Vibrator;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -94,6 +96,10 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	private String dataStream = "";
 	private AnimationSet set = new AnimationSet(true);
 
+	//SharedPreferences 
+//	SharedPreferences myPreferenceManager;
+	Boolean gShaker = false;
+	Boolean gSwiper = false;
 	
 	// Service Variables
 	Intent intent;
@@ -135,7 +141,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
+			
 		// init UI
 		tv_songTitle = (TextView) findViewById(R.id.tv_songTitle);
 		tv_songTime = (TextView) findViewById(R.id.tv_songTime);
@@ -159,8 +165,9 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);	
 	    myAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	    vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
-	            
+	    
+	    checkPrefShake();
+	    checkPrefSwipe();
 	}
 	
 	@Override
@@ -208,8 +215,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
-		
-		
+
 		// Register Broadcast Receiver
 		IntentFilter iff = new IntentFilter(BROADCAST_STR);
 		LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, iff);
@@ -252,15 +258,11 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			// Go to mConnection > onServiceConnection
 			bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 		}
-		 //register a listener for accelerometer sensors
-		 sensorManager.registerListener(this, myAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+		//register a listener for accelerometer sensors
+		sensorManager.registerListener(this, myAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 		 
 		 // Background Image Change
-		new ImageTask().execute();
-
-			
-		 
-		 
+		new ImageTask().execute();		
 	}
 	
 	@Override
@@ -310,8 +312,9 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
+		
+		Intent prefsActivity = new Intent(this, PreferenceScreen.class);
+		startActivity(prefsActivity);
 		return true;
 	}
 	
@@ -777,6 +780,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	@Override
 	public boolean onFling(MotionEvent e1, MotionEvent e2, float velX, float velY) {
 		// TODO Auto-generated method stub
+		if(gSwiper){
 //		if((e1.getY()-e2.getY()) > LARGE_MOVE){
 //			//up
 //			//Toast.makeText(MainActivity.this, "UP", Toast.LENGTH_SHORT).show();
@@ -809,6 +813,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 						//Toast.makeText(MainActivity.this, "Next Song", Toast.LENGTH_SHORT).show();
 						return true;
 					}
+		}
 		return false;
 	}
 
@@ -862,7 +867,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		if (event.timestamp - prevTime > TIME_DIFF) {
-			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+			if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER)  {
 				getAccelerometer(event);
 				prevTime = event.timestamp;
 			}
@@ -871,7 +876,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	}
 	
 	private void getAccelerometer(SensorEvent event) {
-
+		if(gShaker){
 		float[] values = event.values;
 		
 	    // Movement
@@ -944,6 +949,31 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    	startShakeTime = 0;
 	    	shakeTime = 0;
 	    }
+		}
+	}
+	
+	private void checkPrefSwipe() {
+		SharedPreferences myPreferenceManager = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		Boolean gSwipe = myPreferenceManager.getBoolean("gesture_update", true);
+			if(gSwipe){
+				gSwiper = true;
+				//Toast.makeText(MainActivity.this, "Swiper ON " + gSwipe, Toast.LENGTH_SHORT).show();
+			}else{
+				gSwiper = false;
+				//Toast.makeText(MainActivity.this, "Swiper OFF " + gSwipe, Toast.LENGTH_SHORT).show();
+			}
 		
+	}
+	
+	private void checkPrefShake(){
+		SharedPreferences myPreferenceManager = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		Boolean gShake = myPreferenceManager.getBoolean("shaker_update", true);
+		if(gShake){
+			gShaker = true;
+			//Toast.makeText(MainActivity.this, "Shaker ON " + gShake, Toast.LENGTH_SHORT).show();
+		}else{
+			gShaker = false;
+			//Toast.makeText(MainActivity.this, "Shake OFF " + gShake, Toast.LENGTH_SHORT).show();
+		}
 	}
 }
