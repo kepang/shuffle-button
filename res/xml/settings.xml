@@ -5,8 +5,11 @@
             android:title="Shake Gesture"
             android:summary="Enable or Disable shake gesture "
             android:key="shaker_update" 
-            android:defaultValue="false"/>
-        <CheckBoxPreference android:summaryOn="ON"
+            android:defaultValue="false" 
+            android:summaryOff="OFF" 
+            android:summaryOn="ON"/>
+        <CheckBoxPreference 
+            android:summaryOn="ON"
              android:summaryOff="OFF" 
              android:key="gesture_update" 
              android:title="Swipe Gesture" 

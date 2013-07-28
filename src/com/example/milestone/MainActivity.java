@@ -77,7 +77,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	
 	//SharedPreferences 
 //	SharedPreferences myPreferenceManager;
-//	Boolean gShake;
+	Boolean gShaker = false;
 	Boolean gSwiper = false;
 	
 	// Service Variables
@@ -141,7 +141,8 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    myAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	    
 	    
-	    checkPref();
+	    checkPrefShake();
+	    checkPrefSwipe();
 	}
 	
 	@Override
@@ -225,7 +226,8 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 		}
 		 //register a listener for accelerometer sensors
-		 sensorManager.registerListener(this, myAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+		sensorManager.registerListener(this, myAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+		
 	}
 	
 	@Override
@@ -672,7 +674,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	}
 	
 	private void getAccelerometer(SensorEvent event) {
-
+		if(gShaker){
 		float[] values = event.values;
 		
 	    // Movement
@@ -745,14 +747,31 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    	startShakeTime = 0;
 	    	shakeTime = 0;
 	    }
+		}
+	}
+	
+	private void checkPrefSwipe() {
+		SharedPreferences myPreferenceManager = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		Boolean gSwipe = myPreferenceManager.getBoolean("gesture_update", true);
+			if(gSwipe){
+				gSwiper = true;
+				//Toast.makeText(MainActivity.this, "Swiper ON " + gSwipe, Toast.LENGTH_SHORT).show();
+			}else{
+				gSwiper = false;
+				//Toast.makeText(MainActivity.this, "Swiper OFF " + gSwipe, Toast.LENGTH_SHORT).show();
+			}
 		
 	}
 	
-	private void checkPref() {
+	private void checkPrefShake(){
 		SharedPreferences myPreferenceManager = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-		
-		//Boolean gShake = myPreferenceManager.getBoolean("shake_update", false);
-		Boolean gSwipe = myPreferenceManager.getBoolean("gesture_update", true);
-		Toast.makeText(MainActivity.this, "Swipe " + gSwipe, Toast.LENGTH_SHORT).show();
+		Boolean gShake = myPreferenceManager.getBoolean("shaker_update", true);
+		if(gShake){
+			gShaker = true;
+			Toast.makeText(MainActivity.this, "Shaker ON " + gShake, Toast.LENGTH_SHORT).show();
+		}else{
+			gShaker = false;
+			Toast.makeText(MainActivity.this, "Shake OFF " + gShake, Toast.LENGTH_SHORT).show();
+		}
 	}
 }
