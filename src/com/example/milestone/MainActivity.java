@@ -768,10 +768,10 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 		Boolean gShake = myPreferenceManager.getBoolean("shaker_update", true);
 		if(gShake){
 			gShaker = true;
-			Toast.makeText(MainActivity.this, "Shaker ON " + gShake, Toast.LENGTH_SHORT).show();
+			//Toast.makeText(MainActivity.this, "Shaker ON " + gShake, Toast.LENGTH_SHORT).show();
 		}else{
 			gShaker = false;
-			Toast.makeText(MainActivity.this, "Shake OFF " + gShake, Toast.LENGTH_SHORT).show();
+			//Toast.makeText(MainActivity.this, "Shake OFF " + gShake, Toast.LENGTH_SHORT).show();
 		}
 	}
 }
