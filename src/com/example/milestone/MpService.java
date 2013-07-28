@@ -16,6 +16,8 @@ import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -23,11 +25,13 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.animation.AnimationSet;
 
 public class MpService extends Service implements OnPreparedListener, OnErrorListener, OnCompletionListener{
 
@@ -50,11 +54,10 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	private final String MSG_SONGINFO = "msg song info";
 	private final String MSG_SONGID = "msg song id";
 	private final String MSG_ACTION_PLAY = "msg action play";
+	private final String MSG_ACTION_IMG_CHANGE = "msg img change";
 	private final String MSG_ACTION = "Action";
 	private final String MSG_PLAYER_READY = "msg player ready";
 	private final String MSG_PLAYER_ISPLAYING = "msg player isplaying";
-	
-
 	
 	
 	
@@ -81,7 +84,10 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 			
 	};
 	
-	//DatabaseHelper db;
+	DatabaseHelper db;
+	
+	
+	
 	
 	
 	public MpService() {
@@ -111,15 +117,16 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		                PendingIntent.FLAG_UPDATE_CURRENT);
 		
 		notification = new Notification();
-		notification.tickerText = "Woooooooooooo!";
-		notification.icon = R.drawable.ic_launcher;
+		notification.tickerText = "Let's Play";
+		//notification.icon = R.drawable.ic_launcher;
+		notification.icon = R.drawable.musicshuffleplayer72x72;
 		notification.flags |= Notification.FLAG_ONGOING_EVENT;
 		notification.setLatestEventInfo(getApplicationContext(), "Music Player", "Running", pi);
 		
 		//startForeground(NOTIFICATION_ID, notification);
 		//startForeground(4711, notification);
 		
-		//db = new DatabaseHelper(this);
+		db = new DatabaseHelper(this);
 		
 	}
 	
@@ -210,16 +217,21 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
      */
 	@Override
 	public void onCompletion(MediaPlayer mp) {
-		// TODO Auto-generated method stub
-//		Song s = db.getSong(mCursor.getLong(ID_INDEX));
-//				
-//		if (s != null) {
-//			Log.i(TAG, "adding UPVOTE for song:" + s.getSystemID());
-//			db.addUpVote(s.getSystemID());
-//		}
 		
+		// Add an up vote (for popularity) if the song completes 
+		Song s = db.getSong(mCursor.getLong(ID_INDEX));
+				
+		if (s != null) {
+			Log.i(TAG, "adding UPVOTE for song:" + s.getSystemID());
+			db.addUpVote(s.getSystemID());
+		}
+		
+		// Choose next random song
 		selectSong(moveCursorToNextSong());
 		startMusic();
+		
+		sendAction(MSG_ACTION_IMG_CHANGE); // Signal Activity to change background image
+
 	}
 
 	@Override
@@ -251,20 +263,53 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	}
 	
 	public long moveCursorToNextSong() {
-		// Get next song
-		mCursor.moveToPosition(new Random().nextInt(songsListSize));
-		// ID to send to music player which song to play
-		long id = mCursor.getLong(ID_INDEX);
+		boolean continueSearch = true;
+		long sid = 0, dur, rowID;
+		int counter = 0;
 		
-		return id;
+		
+		while (continueSearch) {
+		
+			// Get next song
+			mCursor.moveToPosition(new Random().nextInt(songsListSize));
+			// ID to send to music player which song to play
+			sid = mCursor.getLong(ID_INDEX); // system id: _ID
+			
+			// Add song into database if it doesn't exist
+			// 
+			dur = mCursor.getLong(DURATION_INDEX);
+			Song s = db.getSong(sid);
+			if (s == null) {
+				rowID = db.addSong(new Song(0, sid, songArtist, songTitle, dur, 0, 0));
+				Log.i(TAG, "Entered song into db. sid:" + sid + " ID:" + rowID);
+				continueSearch = false;
+			}
+			else {
+				Log.i(TAG, "song already there:" + s.getArtist() + " " + s.getSystemID());
+				// Does song suck?
+				continueSearch = skipOrNot(s);
+				
+			}
+			
+			// Stop searching if there are too many negative songs in a row
+			counter++;
+			if (counter > 3) {
+				continueSearch = false;
+			}
+		}
+			
+		return sid;
 	}
 	
 	// Play Song. INPUT: system song id
+	// Manage song info.
+	// Input song into database
 	public void selectSong(long id) {
 
 		
 		Uri myUri = ContentUris.withAppendedId(
 				android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+		
 		
 		try {
 			mp.reset();
@@ -304,19 +349,6 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		notification.setLatestEventInfo(this, songTitle, songArtist, pi);
 		
 		
-//		long sid = mCursor.getLong(ID_INDEX);
-//		long dur = mCursor.getLong(DURATION_INDEX);
-//		long rowID;
-//		Song s = db.getSong(sid);
-//		if (s == null) {
-//			rowID = db.addSong(new Song(0, sid, songArtist, songTitle, dur, 0, 0));
-//			Log.i(TAG, "Entered song into db. sid:" + sid + " ID:" + rowID);
-//
-//		}
-//		else {
-//			Log.i(TAG, "song already there:" + s.getArtist() + " " + s.getSystemID());
-//		}
-		
 	}
 	
 	// Cleanup is here
@@ -352,19 +384,25 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	}
 	
 	public void playNext() {
-//		if (mp.getCurrentPosition() < DOWNVOTE_TIMER) {
-//			Song s = db.getSong(mCursor.getLong(ID_INDEX));
-//			
-//			if (s != null) {
-//				Log.i(TAG, "adding DOWNVOTE for song:" + s.getSystemID());
-//				db.addDownVote(s.getSystemID());
-//			}
-//		}
+		// Add down vote to song if user skips it in the first few seconds
+		if (mp.getCurrentPosition() < DOWNVOTE_TIMER) {
+			Song s = db.getSong(mCursor.getLong(ID_INDEX));
+			
+			if (s != null) {
+				Log.i(TAG, "adding DOWNVOTE for song:" + s.getSystemID());
+				db.addDownVote(s.getSystemID());
+			}
+		}
+		
+		// Select the next random song
 		selectSong(moveCursorToNextSong());
+		sendAction(MSG_ACTION_IMG_CHANGE); // Signal Activity to change background image
+
 	}
 	
 	public void playPrev() {
 		mp.seekTo(0);
+		sendAction(MSG_ACTION_IMG_CHANGE);
 	}
 	
 	public void requestSongInfoMsg() {
@@ -398,12 +436,36 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	
 	private void sendAction(String action) {
 		Intent intent = new Intent(BROADCAST_STR);
-		intent.putExtra(MSG_ACTION, MSG_ACTION_PLAY);
+		intent.putExtra(MSG_ACTION, action);
 		LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 		Log.i(TAG, "Sent action info from service");
 
 	}
 	
-	
+	// skip song if there are twice as many down votes to up votes
+	private boolean skipOrNot(Song s) {
+		int ups = s.getUpVotes();
+		int downs = s.getDownVotes();
+		double ratio;
+		
+		Log.i(TAG, "ups:" + ups + " downs:" + downs);
+		
+		if (ups + downs > 5) {
+			// divide by zero
+			if (ups == 0) {
+				ups = 1;
+			}
+			ratio = downs/ups;
+			
+			Log.i(TAG, "down/up ratio test:" + ratio);
+			
+			if (ratio > 2) {
+				Log.i(TAG, "Skipping song: " + s.getTitle());
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	
 }

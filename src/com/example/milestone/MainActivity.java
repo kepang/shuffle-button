@@ -1,5 +1,7 @@
 package com.example.milestone;
 
+import java.util.Random;
+
 import com.example.milestone.MpService;
 import com.example.milestone.MpService.LocalBinder;
 import android.app.Activity;
@@ -7,27 +9,39 @@ import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.AnimationSet;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,6 +67,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	private final String MSG_SONGINFO = "msg song info";
 	private final String MSG_SONGID = "msg song id";
 	private final String MSG_ACTION_PLAY = "msg action play";
+	private final String MSG_ACTION_IMG_CHANGE = "msg img change";
 	private final String MSG_ACTION = "Action";
 	private final String MSG_PLAYER_READY = "msg player ready";
 	private final String MSG_PLAYER_ISPLAYING = "msg player isplaying";
@@ -60,6 +75,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	// Gesture
 	private GestureDetector gDetector;
 	private static final int LARGE_MOVE=60;
+	Vibrator vib;
 	
 	//Accelerometer Sensor
 	private SensorManager sensorManager;
@@ -69,9 +85,15 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	private long startShakeTime = 0;
 	private long stopShakeTime = 0;
 	private long shakeTime = 0;
-	private final double TIME_DIFF = 500000000.0;
+	private final double TIME_DIFF = 250000000.0;
 	private final double NEXT_SONG_SHAKE_THRESHOLD = 1000000000.0;
 	private final double PAUSE_SONG_SHAKE_THRESHOLD = 1500000000.0;
+	
+	// Image Variables
+	private long lastImageRefreshTime = 0;
+	private String dataStream = "";
+	private AnimationSet set = new AnimationSet(true);
+
 	
 	// Service Variables
 	Intent intent;
@@ -82,10 +104,12 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	boolean playerReady = false;
 	
 	ImageButton playB, nextB, previousB;
+	ImageView imgView;
 	SeekBar seekBar;
 	Boolean playBcheck = false;
 	
 	Handler mHandler;
+	volatile boolean shutdown = false;
 	TextView tv_songTitle, tv_songTime;
 	int songsListSize;
 	Bundle bundle;
@@ -106,6 +130,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			
 	};
 	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -114,6 +139,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 		// init UI
 		tv_songTitle = (TextView) findViewById(R.id.tv_songTitle);
 		tv_songTime = (TextView) findViewById(R.id.tv_songTime);
+		imgView = (ImageView) findViewById(R.id.imgView);
 		mHandler = new Handler();
 	    addMusicControlListenerOnButton();
 
@@ -132,6 +158,8 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    gDetector = new GestureDetector(this);
 	    sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);	
 	    myAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+	    vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
 	            
 	}
 	
@@ -149,10 +177,15 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 				
 				outState.putLong("ID", songID);
 				outState.putInt("Position", trackPosn);
+				outState.putString("ImagePath", dataStream);
 				// when activity only goes to stop then start
-				Log.i(TAG, bundle.toString());
-				bundle.putLong("ID", songID);
-				bundle.putInt("Position", trackPosn);
+				
+				if (bundle != null) {
+					Log.i(TAG, bundle.toString());
+					bundle.putLong("ID", songID);
+					bundle.putInt("Position", trackPosn);
+					bundle.putString("ImagePath", dataStream);
+				}
 
 				
 			}
@@ -166,12 +199,16 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	@Override
 	protected void onStart() {
 		super.onStart();
+		
+		imgView.setAlpha(0);
+		
 	}
 	
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
+		
 		
 		// Register Broadcast Receiver
 		IntentFilter iff = new IntentFilter(BROADCAST_STR);
@@ -217,6 +254,13 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 		}
 		 //register a listener for accelerometer sensors
 		 sensorManager.registerListener(this, myAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+		 
+		 // Background Image Change
+		new ImageTask().execute();
+
+			
+		 
+		 
 	}
 	
 	@Override
@@ -231,11 +275,16 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			Log.i(TAG, "Service Unbound (from Activity-onPause)");
 		}
 		
+		// Shutdown seekbar timer thread
+		shutdown = true;
+		
 		// Unbind Broadcast Receiver
 		LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
 		
 		//unregister sensorManager
 		sensorManager.unregisterListener(this);
+		
+		
 	}
 	
 	@Override
@@ -322,6 +371,10 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 				Log.i(TAG, "msg action play");
 			}
 			
+			if (action == MSG_ACTION_IMG_CHANGE) {
+				new ImageTask().execute();
+			}
+			
 		}
 	};
 	
@@ -378,6 +431,145 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	}
 	
 	
+	private class ImageTask extends AsyncTask<Void, Void, Bitmap> {
+
+		@Override
+		protected Bitmap doInBackground(Void... params) {
+			// TODO Auto-generated method stub
+			
+			String img_rq_columns[] = {
+					
+					MediaStore.Images.Media._ID,
+					MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+					MediaStore.Images.Media.WIDTH,
+					MediaStore.Images.Media.HEIGHT,
+					MediaStore.Images.Media.ORIENTATION,
+					MediaStore.Images.Media.DATA
+			};
+			
+			int imgListSize;
+			int w, h, scaled_w, scaled_h;
+			
+			long id;
+			
+			Display display = getWindowManager().getDefaultDisplay();
+			int displayWidth = display.getWidth();
+			int displayHeight = display.getHeight();
+			
+			ContentResolver contentResolver = getContentResolver();
+			Cursor imgCursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 
+					img_rq_columns, null, null, null);
+			
+			
+			if (imgCursor.moveToFirst()) {
+				imgListSize = imgCursor.getCount();
+				imgCursor.moveToPosition(new Random().nextInt(imgListSize));
+				dataStream = imgCursor.getString(5);
+				id = imgCursor.getLong(0);
+				Log.i(TAG, "image id:" + id);
+			}
+			
+			BitmapFactory.Options opt = new BitmapFactory.Options();
+			opt.inSampleSize = 4;
+			
+			w = imgCursor.getInt(2);
+			h = imgCursor.getInt(3);
+			
+			if (w == 0) {
+				w = 1;
+			}
+			if (h == 0) { 
+				h = 1;
+			}
+			
+			Log.i(TAG, "ow:" + w + "oh:" + h);
+
+			// landscape
+			if (displayWidth > displayHeight) {
+				scaled_w = displayWidth;
+				scaled_h = (displayWidth * h) / w; 
+			}
+			// portrait
+			else {
+				scaled_h = displayHeight;
+				scaled_w = (displayHeight * w) / h;
+			}
+			
+			Log.i(TAG, " dw:" + displayWidth + " dh:" + displayHeight + " sw:" + scaled_w + " sh:" + scaled_h);
+			
+			// investigate later:
+			// image id: 14668 caused crash of createScaledBitmap
+			// 1920x2560, scaled to600x800, in portrait mode
+			Bitmap bm = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(dataStream, opt), scaled_w, scaled_h, false);
+			
+			if (bm != null) {
+				Log.i(TAG, "BM IS not NULL");
+				//imgView.startAnimation(set);
+				//imgView.setImageBitmap(bm);
+				
+				
+				//AnimationSet as = new AnimationSet(true);
+		
+				ScaleAnimation scaleAnim = new ScaleAnimation(1.5f, 1.0f, 1.5f, 1.0f, 300.0f, 300.0f);
+				//scaleAnim.setDuration(20000);
+				scaleAnim.setInterpolator(new DecelerateInterpolator());
+				//scaleAnim.start();
+				
+				TranslateAnimation tranAnim = new TranslateAnimation(0, -50, 0, 50);
+				//tranAnim.setDuration(20000);
+				tranAnim.setInterpolator(new DecelerateInterpolator());
+				//tranAnim.setFillAfter(true);
+				//tranAnim.start();
+				
+				
+				
+				
+				
+				
+				//set.setInterpolator(new LinearInterpolator());
+				set.setFillAfter(true);
+				
+				set.addAnimation(scaleAnim);
+				//set.addAnimation(tranAnim);
+				
+
+				
+				
+				set.setDuration(25000);
+
+				
+				
+		
+		
+			}
+			else {
+				Log.i(TAG, "BM IS NULL");
+			}
+			
+			imgCursor.close();
+			
+			return bm;
+		}
+		
+		@Override
+		protected void onPostExecute(Bitmap bm) {
+			// TODO Auto-generated method stub
+			super.onPostExecute(bm);
+			
+
+			imgView.setImageBitmap(bm);
+			imgView.setScaleType(ImageView.ScaleType.CENTER);
+			imgView.setAlpha(90);
+			imgView.startAnimation(set);
+			
+			
+		}
+		
+		
+		
+	}
+	
+
 	// Check if MpService is running
 	private boolean isMpServiceRunning() {
 	    ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -399,7 +591,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			mService = binder.getService();
 			mBound = true;
 			Log.i(TAG, "Service Binding Connected");
-			
+			mHandler.removeCallbacks(timerThread);
 			updateSeekBar();
 			mService.requestSongInfoMsg();
 			if (autoPlayRequest) {
@@ -439,11 +631,14 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 				// update timer
 				tv_songTime.setText(msecToTime((int)position));
 			}
-				
+			
 			mHandler.postDelayed(timerThread, TIMER);
+
+			
 		}
 		
 	};
+	
 	
 	private void autoPlay() {
 		playB.setImageResource(R.drawable.pausebtn);
@@ -464,9 +659,22 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			fillzero = "0";
 		}
 		
+		// Cycle Through Background Images
+//		if (Math.abs(msec - lastImageRefreshTime) > 2100) {
+//			if (seconds == 30 || (seconds == 0 && minutes > 0)  || (seconds == 5 && minutes == 0)){
+//				new ImageTask().execute();
+//
+//				lastImageRefreshTime = msec;
+//				
+//			}
+//		}
+//		
+		//Log.i(TAG, "msec:" + msec + " lastTime=" + lastImageRefreshTime);
+
+		
 		return minutes + ":" + fillzero + seconds;
 	}
-
+	
 	/************ LISTENERS ******************/	
 	/************* BUTTONS *************/
 	public void addMusicControlListenerOnButton(){
@@ -617,6 +825,9 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			isPlaying = false;
 			mService.pauseMusic();
 		}
+		
+		vib.vibrate(50);
+
 	}
 
 	@Override
