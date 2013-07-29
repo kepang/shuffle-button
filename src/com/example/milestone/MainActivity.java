@@ -35,6 +35,8 @@ import android.view.Display;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -98,8 +100,9 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 
 	//SharedPreferences 
 //	SharedPreferences myPreferenceManager;
-	Boolean gShaker = false;
-	Boolean gSwiper = false;
+	boolean gShaker = false;
+	boolean gSwiper = false;
+	boolean loadImages = false;
 	
 	// Service Variables
 	Intent intent;
@@ -166,8 +169,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	    myAccelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	    vib = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 	    
-	    checkPrefShake();
-	    checkPrefSwipe();
+
 	}
 	
 	@Override
@@ -216,6 +218,11 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 		// TODO Auto-generated method stub
 		super.onResume();
 
+		// Check Default Shared Prefs
+	    checkPrefShake();
+	    checkPrefSwipe();
+	    checkLoadImage();
+		
 		// Register Broadcast Receiver
 		IntentFilter iff = new IntentFilter(BROADCAST_STR);
 		LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, iff);
@@ -262,7 +269,9 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 		sensorManager.registerListener(this, myAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 		 
 		 // Background Image Change
-		new ImageTask().execute();		
+		if (loadImages) {
+			new ImageTask().execute();
+		}
 	}
 	
 	@Override
@@ -313,9 +322,30 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		
-		Intent prefsActivity = new Intent(this, PreferenceScreen.class);
-		startActivity(prefsActivity);
-		return true;
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+	    return true;
+		
+		
+		
+//		Intent prefsActivity = new Intent(this, PreferenceScreen.class);
+//		startActivity(prefsActivity);
+//		return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		
+		
+		switch(item.getItemId()) {
+			case R.id.action_settings:
+				startActivity(new Intent(this, PreferenceScreen.class));
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+				
+		}
 	}
 	
 	public void updateSeekBar() {
@@ -375,7 +405,9 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			}
 			
 			if (action == MSG_ACTION_IMG_CHANGE) {
-				new ImageTask().execute();
+				if (loadImages) {
+					new ImageTask().execute();
+				}
 			}
 			
 		}
@@ -562,7 +594,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 
 			imgView.setImageBitmap(bm);
 			imgView.setScaleType(ImageView.ScaleType.CENTER);
-			imgView.setAlpha(90);
+			imgView.setAlpha(100);
 			imgView.startAnimation(set);
 			
 			
@@ -954,7 +986,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	
 	private void checkPrefSwipe() {
 		SharedPreferences myPreferenceManager = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-		Boolean gSwipe = myPreferenceManager.getBoolean("gesture_update", true);
+		boolean gSwipe = myPreferenceManager.getBoolean("gesture_update", true);
 			if(gSwipe){
 				gSwiper = true;
 				//Toast.makeText(MainActivity.this, "Swiper ON " + gSwipe, Toast.LENGTH_SHORT).show();
@@ -967,13 +999,25 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	
 	private void checkPrefShake(){
 		SharedPreferences myPreferenceManager = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-		Boolean gShake = myPreferenceManager.getBoolean("shaker_update", true);
+		boolean gShake = myPreferenceManager.getBoolean("shaker_update", true);
 		if(gShake){
 			gShaker = true;
 			//Toast.makeText(MainActivity.this, "Shaker ON " + gShake, Toast.LENGTH_SHORT).show();
 		}else{
 			gShaker = false;
 			//Toast.makeText(MainActivity.this, "Shake OFF " + gShake, Toast.LENGTH_SHORT).show();
+		}
+	}
+	
+	private void checkLoadImage(){
+		SharedPreferences myPreferenceManager = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		boolean update = myPreferenceManager.getBoolean("backgroundimages_update", true);
+		if(update){
+			loadImages = true;
+			
+		}else{
+			loadImages = false;
+			
 		}
 	}
 }

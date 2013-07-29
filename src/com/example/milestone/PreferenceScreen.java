@@ -16,9 +16,10 @@ public class PreferenceScreen extends PreferenceActivity implements OnPreference
 		super.onCreate(savedInstanceState);
 		addPreferencesFromResource(R.xml.settings);
 		
-		exit =(Preference)findPreference("Button");
-		exit.setOnPreferenceClickListener(this);
+		//exit =(Preference)findPreference("Button");
+		//exit.setOnPreferenceClickListener(this);
 	}
+
 
 	@Override
 	public boolean onPreferenceClick(Preference preference) {

@@ -14,6 +14,7 @@ import android.app.Service;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -28,6 +29,7 @@ import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -60,15 +62,17 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	private final String MSG_PLAYER_ISPLAYING = "msg player isplaying";
 	
 	
-	
+	// Music Player
     MediaPlayer mp = null;
 	Cursor mCursor = null;
 	int songsListSize;
 	int seekBarProgress;
 	
+	// Notification Tray
 	PendingIntent pi;
 	Notification notification;
 	
+	// Song info
 	String songTitle = "";
 	String songArtist = "";
 	String songDuration = "";
@@ -84,9 +88,10 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 			
 	};
 	
+	// Track Favorite Songs
 	DatabaseHelper db;
-	
-	
+	boolean favSongs = false;
+	SharedPreferences mPrefMgr;
 	
 	
 	
@@ -127,6 +132,8 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		//startForeground(4711, notification);
 		
 		db = new DatabaseHelper(this);
+		mPrefMgr = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+
 		
 	}
 	
@@ -286,8 +293,17 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 			}
 			else {
 				Log.i(TAG, "song already there:" + s.getArtist() + " " + s.getSystemID());
-				// Does song suck?
-				continueSearch = skipOrNot(s);
+				
+				// Play Favorite Songs Only? - Check SharedPrefs
+				if (checkPlayFavoriteSongs()) {
+					// Does song suck?
+					continueSearch = skipOrNot(s);
+					Log.i(TAG, "Skip song:" + continueSearch);
+				}
+				else {
+					continueSearch = false;
+				}
+				
 				
 			}
 			
@@ -450,7 +466,7 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		
 		Log.i(TAG, "ups:" + ups + " downs:" + downs);
 		
-		if (ups + downs > 5) {
+		if (ups + downs > 3) {
 			// divide by zero
 			if (ups == 0) {
 				ups = 1;
@@ -459,13 +475,27 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 			
 			Log.i(TAG, "down/up ratio test:" + ratio);
 			
-			if (ratio > 2) {
+			if (ratio > 1) {
 				Log.i(TAG, "Skipping song: " + s.getTitle());
 				return true;
 			}
 		}
 		
 		return false;
+	}
+	
+	private boolean checkPlayFavoriteSongs(){
+		
+		boolean update = mPrefMgr.getBoolean("favsongs_update", true);
+		if(update){
+			favSongs = true;
+			return true;
+			
+		}else{
+			favSongs = false;
+			return false;
+			
+		}
 	}
 	
 }
