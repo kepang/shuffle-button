@@ -122,7 +122,7 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		                PendingIntent.FLAG_UPDATE_CURRENT);
 		
 		notification = new Notification();
-		notification.tickerText = "Let's Play";
+		notification.tickerText = "Shuffle";
 		//notification.icon = R.drawable.ic_launcher;
 		notification.icon = R.drawable.musicshuffleplayer72x72;
 		notification.flags |= Notification.FLAG_ONGOING_EVENT;
@@ -159,7 +159,10 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 	        mp.setOnPreparedListener(this);
 	        
 	        // Init Cursor from MediaStore Content Provider
-	        findMusic();
+	        if (findMusic() == null) {
+	        	// No music found
+	    		return super.onStartCommand(intent, flags, startId);
+	        }
 	        
 	        // Fresh load of app
 	        if (intent.getAction() == ACTION_PLAY) {
@@ -265,8 +268,14 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
 
 		mCursor = contentResolver.query(uri, rq_columns, null, null, null);
-	    songsListSize = mCursor.getCount();
-	    return mCursor;
+	    if (mCursor != null) {
+			songsListSize = mCursor.getCount();
+		    return mCursor;
+	    }
+	    else {
+		    Log.i(TAG, "mCursor null");
+	    	return null;
+	    }
 	}
 	
 	public long moveCursorToNextSong() {

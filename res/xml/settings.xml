@@ -19,7 +19,7 @@
             android:summaryOn="ON"
              android:summaryOff="OFF" 
              android:key="backgroundimages_update" 
-             android:title="Rotate Background Images" 
+             android:title="Background Images" 
              android:summary="Enable or disable background images" 
              android:defaultValue="false"/>
     	<CheckBoxPreference 

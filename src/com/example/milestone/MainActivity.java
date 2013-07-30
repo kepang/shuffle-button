@@ -4,6 +4,7 @@ import java.util.Random;
 
 import com.example.milestone.MpService;
 import com.example.milestone.MpService.LocalBinder;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -22,6 +23,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -107,6 +109,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	// Service Variables
 	Intent intent;
 	MpService mService;
+	boolean foundMusic = false;
 	boolean mBound = false;
 	boolean isPlaying = false;
 	boolean autoPlayRequest = false;
@@ -247,13 +250,25 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 				autoPlayRequest = false;
 				Log.i(TAG, "bundle: trackPosn: " + bundle.getInt("Position"));
 			}
-			this.startService(intent);
 			
-			Log.i(TAG, "Start Service: " + intent.getAction());
+			foundMusic = findMusic();
+			if (foundMusic) {
+				this.startService(intent);
+				Log.i(TAG, "Start Service: " + intent.getAction());
+			}
+			else {
+				tv_songTitle.setText("No songs in device");
+				mBound = true;
+				loadImages = false;
+			}
+			
+			
+			
 		}
 		else {
 			Log.i(TAG, "Service is already running");
 		}
+		
 		
 		// Bind activity to Music Player Service
 		if (!mBound) {
@@ -468,6 +483,7 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 	
 	private class ImageTask extends AsyncTask<Void, Void, Bitmap> {
 
+		@SuppressLint("InlinedApi")
 		@Override
 		protected Bitmap doInBackground(Void... params) {
 			// TODO Auto-generated method stub
@@ -1019,5 +1035,26 @@ public class MainActivity extends Activity implements OnGestureListener, SensorE
 			loadImages = false;
 			
 		}
+	}
+	
+	private boolean findMusic() {
+		ContentResolver contentResolver = getContentResolver();
+		Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+
+		Cursor mCursor = contentResolver.query(uri, rq_columns, null, null, null);
+	    if (mCursor != null) {
+			songsListSize = mCursor.getCount();
+			Log.i(TAG, "songsListSize:" + songsListSize);
+			if (songsListSize == 0) {
+				return false;
+			}
+			else {
+				return true;
+			}
+	    }
+	    else {
+		    Log.i(TAG, "Could not find music on device");
+	    	return false;
+	    }
 	}
 }
