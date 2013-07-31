@@ -388,9 +388,9 @@ public class MpService extends Service implements OnPreparedListener, OnErrorLis
 			mp = null;	
 		}
 		
-//		if(db != null) {
-//			db.close();
-//		}
+		if(db != null) {
+			db.close();
+		}
 		
 		stopForeground(true);
 		stopSelf();
